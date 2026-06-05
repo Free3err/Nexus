@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Снимок состояния (Контрольная точка)"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_layout_snapshot_title"
+                style="@style/Widget.RollAndBack.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:hint="Название этапа / контрольной точки">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/input_snapshot_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:textColor="?android:attr/textColorPrimary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_layout_snapshot_desc"
+                style="@style/Widget.RollAndBack.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="Описание проделанных действий">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/input_snapshot_desc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:textColor="?android:attr/textColorPrimary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Image Pick Area -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_take_photo"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Снимок устройства" />
+
+                <ImageView
+                    android:id="@+id/img_preview"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_marginStart="16dp"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    android:contentDescription="Превью снимка" />
+            </LinearLayout>
+
+            <!-- Error Toggle Switch -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_error_toggle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="?attr/colorSurface"
+                app:cardCornerRadius="12dp"
+                app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Обнаружена ошибка/сбой"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_error"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Error Log Input Field (Hidden by default) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_layout_error_log"
+                style="@style/Widget.RollAndBack.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone"
+                android:hint="Текст ошибки / Системный лог">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/input_error_log"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:minLines="3"
+                    android:textColor="?android:attr/textColorPrimary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_submit_snapshot"
+                style="@style/Widget.RollAndBack.Button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Сохранить" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

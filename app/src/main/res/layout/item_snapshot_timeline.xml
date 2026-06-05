@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_snapshot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    android:backgroundTint="?attr/colorSurfaceVariant"
+    app:cardCornerRadius="16dp"
+    app:strokeColor="?attr/colorOutline"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header: Title, Delete button and Timestamp -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/text_snapshot_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/btn_delete_snapshot"
+                android:text="Этап 1: Сборка шасси"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_delete_snapshot"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:contentDescription="Удалить снимок"
+                app:icon="@android:drawable/ic_menu_close_clear_cancel"
+                app:iconSize="16dp"
+                app:iconTint="?android:attr/textColorSecondary" />
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/text_snapshot_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="24.05.2026, 01:12"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="12sp" />
+
+        <!-- Description -->
+        <TextView
+            android:id="@+id/text_snapshot_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Установили моторы на раму, затянули винты."
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="14sp" />
+
+        <!-- Image preview -->
+        <ImageView
+            android:id="@+id/img_snapshot"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:layout_marginTop="12dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:contentDescription="Снимок устройства" />
+
+        <!-- Error Layout Block -->
+        <LinearLayout
+            android:id="@+id/layout_error_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?attr/colorOutline"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Error Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ЛОГ СБОЯ / ОШИБКА"
+                android:textColor="?attr/colorError"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <!-- Error Log Text -->
+            <TextView
+                android:id="@+id/text_error_log"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="?android:attr/windowBackground"
+                android:padding="8dp"
+                android:text="NullPointerException: Attempt to invoke virtual method..."
+                android:textColor="?attr/colorError"
+                android:textSize="12sp"
+                android:fontFamily="monospace" />
+
+            <!-- Gemini AI analysis action -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_ai_analysis"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Анализ с помощью ИИ"
+                    android:textColor="?attr/colorPrimary"
+                    app:strokeColor="?attr/colorPrimary" />
+
+                <ProgressBar
+                    android:id="@+id/progress_ai"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:visibility="gone"
+                    android:indeterminateTint="?attr/colorPrimary" />
+            </LinearLayout>
+
+            <!-- AI Response Box -->
+            <LinearLayout
+                android:id="@+id/layout_ai_response"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:background="?attr/colorSurface"
+                android:padding="12dp">
+
+                <TextView
+                    android:id="@+id/text_ai_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Рекомендация ИИ (Gemini):"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/text_ai_plan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="1. Проверьте правильность подключения...\n2. Перезагрузите плату..."
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_discuss_ai"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Обсудить"
+                    android:textColor="?attr/colorPrimary" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

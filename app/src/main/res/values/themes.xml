@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.RollAndBack" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="android:fontFamily">@font/jetbrains_mono</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorPrimaryContainer">#20363F</item>
+        <item name="colorOnPrimaryContainer">#FFFFFF</item>
+        <item name="colorSecondaryContainer">#20363F</item>
+        <item name="colorOnSecondaryContainer">#E0F7FA</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="android:windowBackground">@color/background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorSurfaceVariant">@color/surface_variant</item>
+        <item name="colorError">@color/error</item>
+        <item name="colorOutline">@color/outline</item>
+
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="colorAccent">@color/primary</item>
+        <item name="android:colorAccent">@color/primary</item>
+        <item name="android:textColorLink">@color/primary</item>
+
+        <!-- Bottom Sheet style -->
+        <item name="bottomSheetDialogTheme">@style/CustomBottomSheetDialogTheme</item>
+    </style>
+
+    <!-- Bottom Sheet rounded top corners (24dp) -->
+    <style name="CustomBottomSheetDialogTheme" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorPrimaryContainer">#20363F</item>
+        <item name="colorOnPrimaryContainer">#FFFFFF</item>
+        <item name="colorSecondaryContainer">#20363F</item>
+        <item name="colorOnSecondaryContainer">#E0F7FA</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorSurfaceVariant">@color/surface_variant</item>
+        <item name="colorError">@color/error</item>
+        <item name="colorOutline">@color/outline</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="colorAccent">@color/primary</item>
+        <item name="android:colorAccent">@color/primary</item>
+        <item name="android:textColorLink">@color/primary</item>
+    </style>
+
+    <style name="DynamicBottomSheetDialogTheme" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>
+    </style>
+
+    <style name="CustomBottomSheetStyle" parent="Widget.Material3.BottomSheet">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.BottomSheet</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.BottomSheet" parent="">
+        <item name="cornerSizeTopLeft">24dp</item>
+        <item name="cornerSizeTopRight">24dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <!-- Custom Button style (oval) -->
+    <style name="Widget.RollAndBack.Button" parent="Widget.Material3.Button">
+        <item name="shapeAppearance">@style/ShapeAppearance.RollAndBack.Button</item>
+        <item name="backgroundTint">?attr/colorPrimary</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="ShapeAppearance.RollAndBack.Button" parent="">
+        <item name="cornerSize">50%</item> <!-- Full rounded / oval -->
+    </style>
+
+    <!-- Custom Outlined TextInputLayout style -->
+    <style name="Widget.RollAndBack.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/outline_selector</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="hintTextColor">?attr/colorPrimary</item>
+        <item name="boxCornerRadiusTopStart">16dp</item>
+        <item name="boxCornerRadiusTopEnd">16dp</item>
+        <item name="boxCornerRadiusBottomStart">16dp</item>
+        <item name="boxCornerRadiusBottomEnd">16dp</item>
+        <item name="boxBackgroundColor">@android:color/transparent</item>
+    </style>
+</resources>

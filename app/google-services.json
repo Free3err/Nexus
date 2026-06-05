@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "12425567229",
+    "project_id": "rbr-project-85e58",
+    "storage_bucket": "rbr-project-85e58.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:12425567229:android:b6d4a361ae996227195794",
+        "android_client_info": {
+          "package_name": "ru.mogcommunity.rbr_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATvAB8yDqtwGM45Jcp2hjDSTsrhMCCJ2Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
