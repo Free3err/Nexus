@@ -15,6 +15,10 @@ public class Project {
     private long createdAt;
     private int snapshotsCount;
 
+    private String configEnv;
+    private String chatSummary;
+    private String lastSummarizedMessageId;
+
     public Project() {
     }
 
@@ -25,6 +29,9 @@ public class Project {
         this.description = description;
         this.createdAt = createdAt;
         this.snapshotsCount = 0;
+        this.configEnv = "";
+        this.chatSummary = "";
+        this.lastSummarizedMessageId = "";
     }
 
     @NonNull
@@ -66,6 +73,30 @@ public class Project {
 
     public void setSnapshotsCount(int snapshotsCount) {
         this.snapshotsCount = snapshotsCount;
+    }
+
+    public String getConfigEnv() {
+        return configEnv;
+    }
+
+    public void setConfigEnv(String configEnv) {
+        this.configEnv = configEnv;
+    }
+
+    public String getChatSummary() {
+        return chatSummary;
+    }
+
+    public void setChatSummary(String chatSummary) {
+        this.chatSummary = chatSummary;
+    }
+
+    public String getLastSummarizedMessageId() {
+        return lastSummarizedMessageId;
+    }
+
+    public void setLastSummarizedMessageId(String lastSummarizedMessageId) {
+        this.lastSummarizedMessageId = lastSummarizedMessageId;
     }
 }
 

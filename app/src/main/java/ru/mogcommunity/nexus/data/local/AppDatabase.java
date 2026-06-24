@@ -12,7 +12,7 @@ import ru.mogcommunity.rbr_project.data.model.Snapshot;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Project.class, Snapshot.class, ru.mogcommunity.rbr_project.data.model.ChatMessage.class}, version = 2, exportSchema = false)
+@Database(entities = {Project.class, Snapshot.class, ru.mogcommunity.rbr_project.data.model.ChatMessage.class}, version = 5, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract ProjectDao projectDao();
     public abstract SnapshotDao snapshotDao();
@@ -29,7 +29,6 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "rollandback_database")
-                            .fallbackToDestructiveMigration()
                             .build();
                 }
             }

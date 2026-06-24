@@ -26,7 +26,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class GeminiClient {
-    private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
+    private static final String BASE_URL = ru.mogcommunity.rbr_project.BuildConfig.GEMINI_BASE_URL;
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     private final OkHttpClient client;
@@ -65,73 +65,123 @@ public class GeminiClient {
         this.mainHandler = new Handler(Looper.getMainLooper());
     }
 
-    public void analyzeError(String apiKey, String prompt, GeminiCallback callback) {
+    public void analyzeError(String apiKey, String prompt, String imageUrl, android.content.Context context, GeminiCallback callback) {
         if (apiKey == null || apiKey.trim().isEmpty()) {
             callback.onError("Gemini API key is not specified in Settings.");
             return;
         }
 
         String cleanApiKey = apiKey.trim();
-
-        GeminiRequest geminiRequest = new GeminiRequest(prompt);
-        String jsonPayload = gson.toJson(geminiRequest);
-        android.util.Log.d("RBR_GeminiClient", "Request Payload: " + jsonPayload);
-
         String url = BASE_URL + "?key=" + cleanApiKey;
 
-        RequestBody body = RequestBody.create(jsonPayload, JSON);
-        Request request = new Request.Builder()
-                .url(url)
-                .post(body)
-                .build();
+        okhttp3.OkHttpClient clientToUse = this.client;
+        
+        ru.mogcommunity.rbr_project.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
+            byte[] imageBytes = null;
+            String mimeType = "image/jpeg";
 
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                android.util.Log.e("RBR_GeminiClient", "Network error: " + e.getMessage(), e);
-                mainHandler.post(() -> callback.onError("Network error: " + e.getMessage()));
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (!response.isSuccessful()) {
-                    String errorBody = response.body() != null ? response.body().string() : "";
-                    android.util.Log.e("RBR_GeminiClient", "Server error (" + response.code() + "): " + errorBody);
-                    
-                    String parsedError = "";
+            if (imageUrl != null && !imageUrl.trim().isEmpty() && context != null) {
+                String cleanUrl = imageUrl.trim();
+                if (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) {
                     try {
-                        GeminiErrorResponse err = gson.fromJson(errorBody, GeminiErrorResponse.class);
-                        if (err != null && err.error != null && err.error.message != null) {
-                            parsedError = err.error.message;
+                        Request imgRequest = new Request.Builder().url(cleanUrl).build();
+                        try (Response response = clientToUse.newCall(imgRequest).execute()) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                imageBytes = response.body().bytes();
+                                String contentType = response.header("Content-Type");
+                                if (contentType != null && contentType.startsWith("image/")) {
+                                    mimeType = contentType;
+                                }
+                            }
                         }
-                    } catch (Exception ignored) {}
-                    
-                    final String finalError = !parsedError.isEmpty() ? parsedError : errorBody;
-                    mainHandler.post(() -> callback.onError("Ошибка (" + response.code() + "): " + finalError));
-                    return;
-                }
-
-                if (response.body() == null) {
-                    mainHandler.post(() -> callback.onError("Empty response body from server"));
-                    return;
-                }
-
-                try {
-                    String jsonResponse = response.body().string();
-                    GeminiResponse geminiResponse = gson.fromJson(jsonResponse, GeminiResponse.class);
-                    if (geminiResponse != null && geminiResponse.candidates != null && !geminiResponse.candidates.isEmpty()) {
-                        GeminiResponse.Candidate candidate = geminiResponse.candidates.get(0);
-                        if (candidate.content != null && candidate.content.parts != null && !candidate.content.parts.isEmpty()) {
-                            String reply = candidate.content.parts.get(0).text;
-                            mainHandler.post(() -> callback.onSuccess(reply));
-                            return;
-                        }
+                    } catch (Exception e) {
+                        android.util.Log.e("RBR_GeminiClient", "Failed to download image: " + cleanUrl, e);
                     }
-                    mainHandler.post(() -> callback.onError("Failed to parse Gemini response"));
-                } catch (Exception e) {
-                    mainHandler.post(() -> callback.onError("Parsing error: " + e.getMessage()));
+                } else if (cleanUrl.startsWith("content://") || cleanUrl.startsWith("file://") || cleanUrl.startsWith("/")) {
+                    try {
+                        android.net.Uri uri = android.net.Uri.parse(cleanUrl);
+                        String resolvedType = context.getContentResolver().getType(uri);
+                        if (resolvedType != null) {
+                            mimeType = resolvedType;
+                        }
+                        try (java.io.InputStream inputStream = context.getContentResolver().openInputStream(uri)) {
+                            if (inputStream != null) {
+                                java.io.ByteArrayOutputStream byteBuffer = new java.io.ByteArrayOutputStream();
+                                byte[] buffer = new byte[1024];
+                                int len;
+                                while ((len = inputStream.read(buffer)) != -1) {
+                                    byteBuffer.write(buffer, 0, len);
+                                }
+                                imageBytes = byteBuffer.toByteArray();
+                            }
+                        }
+                    } catch (Exception e) {
+                        android.util.Log.e("RBR_GeminiClient", "Failed to load local image: " + cleanUrl, e);
+                    }
                 }
             }
+
+            final byte[] finalImageBytes = imageBytes;
+            final String finalMimeType = mimeType;
+
+            GeminiRequest geminiRequest = new GeminiRequest(prompt, finalImageBytes, finalMimeType);
+            String jsonPayload = gson.toJson(geminiRequest);
+            android.util.Log.d("RBR_GeminiClient", "Request Payload: " + jsonPayload);
+
+            RequestBody body = RequestBody.create(jsonPayload, JSON);
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .build();
+
+            clientToUse.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    android.util.Log.e("RBR_GeminiClient", "Network error: " + e.getMessage(), e);
+                    mainHandler.post(() -> callback.onError("Network error: " + e.getMessage()));
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    if (!response.isSuccessful()) {
+                        String errorBody = response.body() != null ? response.body().string() : "";
+                        android.util.Log.e("RBR_GeminiClient", "Server error (" + response.code() + "): " + errorBody);
+                        
+                        String parsedError = "";
+                        try {
+                            GeminiErrorResponse err = gson.fromJson(errorBody, GeminiErrorResponse.class);
+                            if (err != null && err.error != null && err.error.message != null) {
+                                parsedError = err.error.message;
+                            }
+                        } catch (Exception ignored) {}
+                        
+                        final String finalError = !parsedError.isEmpty() ? parsedError : errorBody;
+                        mainHandler.post(() -> callback.onError("Ошибка (" + response.code() + "): " + finalError));
+                        return;
+                    }
+
+                    if (response.body() == null) {
+                        mainHandler.post(() -> callback.onError("Empty response body from server"));
+                        return;
+                    }
+
+                    try {
+                        String jsonResponse = response.body().string();
+                        GeminiResponse geminiResponse = gson.fromJson(jsonResponse, GeminiResponse.class);
+                        if (geminiResponse != null && geminiResponse.candidates != null && !geminiResponse.candidates.isEmpty()) {
+                            GeminiResponse.Candidate candidate = geminiResponse.candidates.get(0);
+                            if (candidate.content != null && candidate.content.parts != null && !candidate.content.parts.isEmpty()) {
+                                String reply = candidate.content.parts.get(0).text;
+                                mainHandler.post(() -> callback.onSuccess(reply));
+                                return;
+                            }
+                        }
+                        mainHandler.post(() -> callback.onError("Failed to parse Gemini response"));
+                    } catch (Exception e) {
+                        mainHandler.post(() -> callback.onError("Parsing error: " + e.getMessage()));
+                    }
+                }
+            });
         });
     }
 
@@ -139,13 +189,24 @@ public class GeminiClient {
         @SerializedName("contents")
         List<Content> contents;
 
-        GeminiRequest(String prompt) {
+        GeminiRequest(String prompt, byte[] imageBytes, String mimeType) {
             this.contents = new ArrayList<>();
             Content content = new Content();
             content.parts = new ArrayList<>();
-            Part part = new Part();
-            part.text = prompt;
-            content.parts.add(part);
+            
+            Part textPart = new Part();
+            textPart.text = prompt;
+            content.parts.add(textPart);
+
+            if (imageBytes != null && imageBytes.length > 0) {
+                Part imgPart = new Part();
+                InlineData inlineData = new InlineData();
+                inlineData.mimeType = mimeType;
+                inlineData.data = android.util.Base64.encodeToString(imageBytes, android.util.Base64.NO_WRAP);
+                imgPart.inlineData = inlineData;
+                content.parts.add(imgPart);
+            }
+
             this.contents.add(content);
         }
 
@@ -157,6 +218,17 @@ public class GeminiClient {
         static class Part {
             @SerializedName("text")
             String text;
+
+            @SerializedName("inlineData")
+            InlineData inlineData;
+        }
+
+        static class InlineData {
+            @SerializedName("mimeType")
+            String mimeType;
+
+            @SerializedName("data")
+            String data;
         }
     }
 

@@ -15,6 +15,9 @@ import ru.mogcommunity.rbr_project.viewmodel.AuthViewModel;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class LoginActivity extends AppCompatActivity {
     private ActivityLoginBinding binding;
     private AuthViewModel viewModel;

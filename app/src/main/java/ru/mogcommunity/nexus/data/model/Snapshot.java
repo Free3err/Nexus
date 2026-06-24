@@ -30,6 +30,8 @@ public class Snapshot {
     private String errorLog;
     private String imageUrl;
     private String aiAnalysisPlan;
+    private String tags;
+    private String secondaryImages;
 
     public Snapshot() {
     }
@@ -120,6 +122,22 @@ public class Snapshot {
 
     public void setAiAnalysisPlan(String aiAnalysisPlan) {
         this.aiAnalysisPlan = aiAnalysisPlan;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
+    public String getSecondaryImages() {
+        return secondaryImages;
+    }
+
+    public void setSecondaryImages(String secondaryImages) {
+        this.secondaryImages = secondaryImages;
     }
 }
 

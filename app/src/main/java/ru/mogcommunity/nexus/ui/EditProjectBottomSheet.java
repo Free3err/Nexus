@@ -10,18 +10,37 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
 import ru.mogcommunity.rbr_project.R;
-import ru.mogcommunity.rbr_project.databinding.BottomSheetCreateProjectBinding;
+import ru.mogcommunity.rbr_project.databinding.BottomSheetEditProjectBinding;
 import ru.mogcommunity.rbr_project.viewmodel.ProjectViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-
-import java.util.UUID;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
-public class CreateProjectBottomSheet extends BottomSheetDialogFragment {
-    private BottomSheetCreateProjectBinding binding;
+public class EditProjectBottomSheet extends BottomSheetDialogFragment {
+    private static final String ARG_PROJECT_ID = "project_id";
+    private static final String ARG_PROJECT_NAME = "project_name";
+    private static final String ARG_PROJECT_DESC = "project_desc";
+    private static final String ARG_PROJECT_CONFIG = "project_config";
+
+    private BottomSheetEditProjectBinding binding;
     private ProjectViewModel viewModel;
+
+    private String projectId;
+    private String projectName;
+    private String projectDesc;
+    private String projectConfig;
+
+    public static EditProjectBottomSheet newInstance(String projectId, String name, String desc, String configEnv) {
+        EditProjectBottomSheet fragment = new EditProjectBottomSheet();
+        Bundle args = new Bundle();
+        args.putString(ARG_PROJECT_ID, projectId);
+        args.putString(ARG_PROJECT_NAME, name);
+        args.putString(ARG_PROJECT_DESC, desc);
+        args.putString(ARG_PROJECT_CONFIG, configEnv);
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     @Override
     public int getTheme() {
@@ -43,12 +62,23 @@ public class CreateProjectBottomSheet extends BottomSheetDialogFragment {
         return super.onCreateDialog(savedInstanceState);
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            projectId = getArguments().getString(ARG_PROJECT_ID);
+            projectName = getArguments().getString(ARG_PROJECT_NAME);
+            projectDesc = getArguments().getString(ARG_PROJECT_DESC);
+            projectConfig = getArguments().getString(ARG_PROJECT_CONFIG);
+        }
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         android.content.Context themedContext = new android.view.ContextThemeWrapper(requireContext(), getTheme());
         LayoutInflater themedInflater = inflater.cloneInContext(themedContext);
-        binding = BottomSheetCreateProjectBinding.inflate(themedInflater, container, false);
+        binding = BottomSheetEditProjectBinding.inflate(themedInflater, container, false);
         return binding.getRoot();
     }
 
@@ -84,9 +114,14 @@ public class CreateProjectBottomSheet extends BottomSheetDialogFragment {
 
         applyThemedColoring();
 
+        binding.inputProjectName.setText(projectName);
+        binding.inputProjectDesc.setText(projectDesc);
+        binding.inputProjectConfig.setText(projectConfig != null ? projectConfig : "");
+
         binding.btnSubmitProject.setOnClickListener(v -> {
             String name = binding.inputProjectName.getText() != null ? binding.inputProjectName.getText().toString().trim() : "";
             String desc = binding.inputProjectDesc.getText() != null ? binding.inputProjectDesc.getText().toString().trim() : "";
+            String config = binding.inputProjectConfig.getText() != null ? binding.inputProjectConfig.getText().toString().trim() : "";
 
             if (name.isEmpty()) {
                 binding.inputLayoutProjectName.setError("Введите название проекта");
@@ -96,13 +131,11 @@ public class CreateProjectBottomSheet extends BottomSheetDialogFragment {
             binding.inputLayoutProjectName.setError(null);
             
             try {
-                String projectId = UUID.randomUUID().toString();
-                android.util.Log.d("RBR_CreateProject", "Creating project with ID: " + projectId + ", name: " + name);
-                viewModel.addProject(projectId, name, desc);
+                viewModel.updateProjectDetails(projectId, name, desc, config);
                 dismiss();
             } catch (Exception e) {
-                android.util.Log.e("RBR_CreateProject", "Error creating project", e);
-                com.google.android.material.snackbar.Snackbar.make(view, "Ошибка создания проекта: " + e.getMessage(), com.google.android.material.snackbar.Snackbar.LENGTH_LONG).show();
+                android.util.Log.e("RBR_EditProject", "Error editing project", e);
+                com.google.android.material.snackbar.Snackbar.make(view, "Ошибка редактирования проекта: " + e.getMessage(), com.google.android.material.snackbar.Snackbar.LENGTH_LONG).show();
             }
         });
     }
@@ -144,6 +177,7 @@ public class CreateProjectBottomSheet extends BottomSheetDialogFragment {
 
         binding.inputLayoutProjectName.setBoxStrokeColorStateList(selectorStateList);
         binding.inputLayoutProjectDesc.setBoxStrokeColorStateList(selectorStateList);
+        binding.inputLayoutProjectConfig.setBoxStrokeColorStateList(selectorStateList);
         binding.inputLayoutProjectName.setError(null);
     }
 
@@ -153,4 +187,3 @@ public class CreateProjectBottomSheet extends BottomSheetDialogFragment {
         binding = null;
     }
 }
-

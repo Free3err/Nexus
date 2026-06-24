@@ -16,7 +16,10 @@ import ru.mogcommunity.rbr_project.data.remote.GeminiClient;
 import ru.mogcommunity.rbr_project.data.repository.ProjectRepository;
 
 import java.util.List;
+import javax.inject.Inject;
+import dagger.hilt.android.lifecycle.HiltViewModel;
 
+@HiltViewModel
 public class ProjectViewModel extends AndroidViewModel {
     private final ProjectRepository repository;
     private final PreferenceManager preferenceManager;
@@ -31,12 +34,14 @@ public class ProjectViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> isChatLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> chatError = new MutableLiveData<>(null);
     private String activeProjectId;
+    private static final java.util.Set<String> activeSummarizations = java.util.Collections.synchronizedSet(new java.util.HashSet<>());
 
-    public ProjectViewModel(@NonNull Application application) {
+    @Inject
+    public ProjectViewModel(@NonNull Application application, ProjectRepository repository, PreferenceManager preferenceManager, GeminiClient geminiClient) {
         super(application);
-        repository = new ProjectRepository(application);
-        preferenceManager = PreferenceManager.getInstance(application);
-        geminiClient = new GeminiClient();
+        this.repository = repository;
+        this.preferenceManager = preferenceManager;
+        this.geminiClient = geminiClient;
 
         allProjects = repository.getAllProjects();
         allGallerySnapshots = repository.getAllSnapshotsWithImages();
@@ -92,11 +97,18 @@ public class ProjectViewModel extends AndroidViewModel {
         repository.deleteProject(project);
     }
 
+    public void updateProjectDetails(String projectId, String name, String description, String configEnv) {
+        repository.updateProjectDetails(projectId, name, description, configEnv);
+    }
+
     public void addSnapshot(String id, String projectId, String title, String description,
-                            boolean hasError, String errorLog, String imageUrl, Uri localImageUri) {
+                            boolean hasError, String errorLog, String imageUrl, Uri localImageUri,
+                            String tags, String secondaryImages, List<Uri> secondaryUris) {
         Snapshot snapshot = new Snapshot(id, projectId, title, System.currentTimeMillis(),
                 description, hasError, errorLog, imageUrl, "");
-        repository.insertSnapshot(snapshot, localImageUri);
+        snapshot.setTags(tags);
+        snapshot.setSecondaryImages(secondaryImages);
+        repository.insertSnapshot(snapshot, localImageUri, secondaryUris);
     }
 
     public void deleteSnapshot(Snapshot snapshot) {
@@ -110,22 +122,45 @@ public class ProjectViewModel extends AndroidViewModel {
         aiError.setValue(null);
 
         ru.mogcommunity.rbr_project.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
+            Project project = repository.getProjectByIdSync(snapshot.getProjectId());
+            String finalProjectDesc = projectDescription;
+            if (project != null && project.getConfigEnv() != null && !project.getConfigEnv().trim().isEmpty()) {
+                finalProjectDesc += "\nКонфигурация проекта (config.env):\n" + project.getConfigEnv().trim();
+            }
             List<Snapshot> snapshots = repository.getSnapshotsForProjectSync(snapshot.getProjectId());
-            StringBuilder historyBuilder = new StringBuilder();
+            List<Snapshot> historySnapshots = new java.util.ArrayList<>();
             if (snapshots != null) {
-                int index = 1;
                 for (Snapshot s : snapshots) {
-                    if (s.getId().equals(snapshot.getId())) {
-                        continue;
+                    if (!s.getId().equals(snapshot.getId())) {
+                        historySnapshots.add(s);
                     }
+                }
+            }
+
+            StringBuilder historyBuilder = new StringBuilder();
+            int totalHist = historySnapshots.size();
+            int cutoff = totalHist - 3;
+            for (int i = 0; i < totalHist; i++) {
+                Snapshot s = historySnapshots.get(i);
+                int index = i + 1;
+                if (totalHist > 4 && i < cutoff) {
+                    historyBuilder.append(index).append(". Снимок: \"").append(s.getTitle()).append("\" ");
+                    historyBuilder.append("(Статус: ").append(s.isHasError() ? "Ошибка/Сбой" : "Успешно").append(")");
+                    if (s.getTags() != null && !s.getTags().trim().isEmpty()) {
+                        historyBuilder.append(" [Теги: ").append(s.getTags().trim()).append("]");
+                    }
+                    historyBuilder.append("\n");
+                } else {
                     historyBuilder.append(index).append(". Снимок: \"").append(s.getTitle()).append("\"\n");
                     historyBuilder.append("   Описание: ").append(s.getDescription() != null ? s.getDescription() : "нет").append("\n");
                     historyBuilder.append("   Статус: ").append(s.isHasError() ? "Ошибка/Сбой" : "Успешно").append("\n");
+                    if (s.getTags() != null && !s.getTags().trim().isEmpty()) {
+                        historyBuilder.append("   Теги: ").append(s.getTags().trim()).append("\n");
+                    }
                     if (s.getAiAnalysisPlan() != null && !s.getAiAnalysisPlan().trim().isEmpty()) {
                         historyBuilder.append("   План решения ИИ: ").append(s.getAiAnalysisPlan().trim()).append("\n");
                     }
                     historyBuilder.append("\n");
-                    index++;
                 }
             }
             String finalHistory = historyBuilder.toString().trim();
@@ -143,12 +178,12 @@ public class ProjectViewModel extends AndroidViewModel {
 
                 String logContent = snapshot.getErrorLog() != null ? snapshot.getErrorLog() : "Лог ошибки отсутствует";
                 String prompt = "Ты — ведущий инженер по поиску неисправностей в системах. Тебе нужно проанализировать ошибку и предложить пошаговый план решения.\n" +
-                        "Проект: " + projectDescription + "\n\n" +
+                        "Проект: " + finalProjectDesc + "\n\n" +
                         "История всех предыдущих этапов проекта:\n" + finalHistory + "\n\n" +
                         "Текущий сбой/ошибка: " + logContent + "\n\n" +
                         "Задание: Напиши краткий, технически точный пошаговый план действий для устранения этой проблемы на русском языке. Ответ должен быть написан обычным текстом, без использования Markdown-разметки (не используй звездочки *, решетки #, списки, жирный или курсивный текст). Для разделения шагов используй только новые строки.";
 
-                geminiClient.analyzeError(apiKey, prompt, new GeminiClient.GeminiCallback() {
+                geminiClient.analyzeError(apiKey, prompt, snapshot.getImageUrl(), getApplication(), new GeminiClient.GeminiCallback() {
                     @Override
                     public void onSuccess(String plan) {
                         snapshot.setAiAnalysisPlan(ru.mogcommunity.rbr_project.ui.helper.MarkdownStripper.strip(plan));
@@ -175,7 +210,7 @@ public class ProjectViewModel extends AndroidViewModel {
                         qwenPrompt.append("Ты — ведущий инженер по поиску неисправностей. Напиши пошаговый план решения проблемы или ремонта на русском языке. Пиши простыми словами, без приветствий, вступлений и Markdown-разметки.\n");
                         qwenPrompt.append("<|im_end|>\n");
                         qwenPrompt.append("<|im_start|>user\n");
-                        qwenPrompt.append("Проект: ").append(projectDescription).append("\n\n");
+                        qwenPrompt.append("Проект: ").append(finalProjectDesc).append("\n\n");
                         qwenPrompt.append("История всех предыдущих этапов проекта:\n").append(finalHistory).append("\n\n");
                         qwenPrompt.append("Проблема: ").append(logContent).append("\n");
                         qwenPrompt.append("<|im_end|>\n");
@@ -183,7 +218,7 @@ public class ProjectViewModel extends AndroidViewModel {
                         prompt = qwenPrompt.toString();
                     } else {
                         prompt = "Инструкция: Напиши краткий пошаговый план решения проблемы или ремонта на русском языке. Пиши простыми словами, без приветствий, вступлений и Markdown-разметки.\n" +
-                                "Проект: " + projectDescription + "\n\n" +
+                                "Проект: " + finalProjectDesc + "\n\n" +
                                 "История всех предыдущих этапов проекта:\n" + finalHistory + "\n\n" +
                                 "Проблема: " + logContent + "\n\n" +
                                 "План действий:";
@@ -278,23 +313,77 @@ public class ProjectViewModel extends AndroidViewModel {
             StringBuilder contextBuilder = new StringBuilder();
             contextBuilder.append("Инженерный контекст проекта:\n");
             contextBuilder.append("Название проекта: ").append(project.getName()).append("\n");
-            contextBuilder.append("Описание проекта: ").append(project.getDescription()).append("\n\n");
+            contextBuilder.append("Описание проекта: ").append(project.getDescription()).append("\n");
+            if (project.getConfigEnv() != null && !project.getConfigEnv().trim().isEmpty()) {
+                contextBuilder.append("Конфигурация проекта (config.env):\n").append(project.getConfigEnv().trim()).append("\n");
+            }
+            contextBuilder.append("\n");
             contextBuilder.append("История снимков (коммитов) проекта:\n");
             if (snapshots == null || snapshots.isEmpty()) {
                 contextBuilder.append("История снимков пуста.\n");
             } else {
-                for (int i = 0; i < snapshots.size(); i++) {
+                int totalSnaps = snapshots.size();
+                int cutoff = totalSnaps - 3;
+                for (int i = 0; i < totalSnaps; i++) {
                     Snapshot s = snapshots.get(i);
-                    contextBuilder.append(i + 1).append(". Снимок: \"").append(s.getTitle()).append("\"\n");
-                    contextBuilder.append("   Описание действий: ").append(s.getDescription() != null ? s.getDescription() : "нет").append("\n");
-                    contextBuilder.append("   Статус: ").append(s.isHasError() ? "Ошибка/Сбой" : "Успешно").append("\n");
-                    if (s.isHasError() && s.getErrorLog() != null && !s.getErrorLog().trim().isEmpty()) {
-                        contextBuilder.append("   Лог ошибки: ").append(s.getErrorLog().trim()).append("\n");
+                    int index = i + 1;
+                    if (totalSnaps > 4 && i < cutoff) {
+                        contextBuilder.append(index).append(". Снимок: \"").append(s.getTitle()).append("\" ");
+                        contextBuilder.append("(Статус: ").append(s.isHasError() ? "Ошибка/Сбой" : "Успешно").append(")");
+                        if (s.getTags() != null && !s.getTags().trim().isEmpty()) {
+                            contextBuilder.append(" [Теги: ").append(s.getTags().trim()).append("]");
+                        }
+                        contextBuilder.append("\n");
+                    } else {
+                        contextBuilder.append(index).append(". Снимок: \"").append(s.getTitle()).append("\"\n");
+                        contextBuilder.append("   Описание действий: ").append(s.getDescription() != null ? s.getDescription() : "нет").append("\n");
+                        contextBuilder.append("   Статус: ").append(s.isHasError() ? "Ошибка/Сбой" : "Успешно").append("\n");
+                        if (s.getTags() != null && !s.getTags().trim().isEmpty()) {
+                            contextBuilder.append("   Теги: ").append(s.getTags().trim()).append("\n");
+                        }
+                        if (s.isHasError() && s.getErrorLog() != null && !s.getErrorLog().trim().isEmpty()) {
+                            contextBuilder.append("   Лог ошибки: ").append(s.getErrorLog().trim()).append("\n");
+                        }
+                        if (s.getAiAnalysisPlan() != null && !s.getAiAnalysisPlan().trim().isEmpty()) {
+                            contextBuilder.append("   План решения ИИ: ").append(s.getAiAnalysisPlan().trim()).append("\n");
+                        }
+                        contextBuilder.append("\n");
                     }
-                    if (s.getAiAnalysisPlan() != null && !s.getAiAnalysisPlan().trim().isEmpty()) {
-                        contextBuilder.append("   План решения ИИ: ").append(s.getAiAnalysisPlan().trim()).append("\n");
+                }
+            }
+
+            int lastSummarizedIndex = -1;
+            String lastSumId = project.getLastSummarizedMessageId();
+            if (lastSumId != null && !lastSumId.isEmpty() && history != null) {
+                for (int i = 0; i < history.size(); i++) {
+                    if (history.get(i).getId().equals(lastSumId)) {
+                        lastSummarizedIndex = i;
+                        break;
                     }
-                    contextBuilder.append("\n");
+                }
+            }
+
+            List<ru.mogcommunity.rbr_project.data.model.ChatMessage> activeHistory = new java.util.ArrayList<>();
+            if (history != null) {
+                for (int i = lastSummarizedIndex + 1; i < history.size(); i++) {
+                    activeHistory.add(history.get(i));
+                }
+            }
+
+            StringBuilder historyPrompt = new StringBuilder();
+            if (project.getChatSummary() != null && !project.getChatSummary().isEmpty()) {
+                historyPrompt.append("Ранее в диалоге было обсуждено следующее:\n")
+                             .append(project.getChatSummary().trim()).append("\n\n");
+            }
+            if (!activeHistory.isEmpty()) {
+                historyPrompt.append("Активная часть диалога:\n");
+                for (ru.mogcommunity.rbr_project.data.model.ChatMessage msg : activeHistory) {
+                    if (msg.getId().equals(messageId)) continue;
+                    if ("user".equals(msg.getSender())) {
+                        historyPrompt.append("Пользователь: ").append(msg.getText()).append("\n");
+                    } else {
+                        historyPrompt.append("ИИ-ассистент: ").append(msg.getText()).append("\n");
+                    }
                 }
             }
 
@@ -310,16 +399,7 @@ public class ProjectViewModel extends AndroidViewModel {
                 promptBuilder.append("<|im_start|>user\n");
                 promptBuilder.append(contextBuilder.toString());
                 promptBuilder.append("\nПредыдущая история диалога:\n");
-                if (history != null) {
-                    for (ru.mogcommunity.rbr_project.data.model.ChatMessage msg : history) {
-                        if (msg.getId().equals(messageId)) continue;
-                        if ("user".equals(msg.getSender())) {
-                            promptBuilder.append("Пользователь: ").append(msg.getText()).append("\n");
-                        } else {
-                            promptBuilder.append("ИИ-ассистент: ").append(msg.getText()).append("\n");
-                        }
-                    }
-                }
+                promptBuilder.append(historyPrompt.toString());
                 promptBuilder.append("\nНовый вопрос: ").append(cleanText).append("\n");
                 promptBuilder.append("<|im_end|>\n");
                 promptBuilder.append("<|im_start|>assistant\n");
@@ -329,16 +409,7 @@ public class ProjectViewModel extends AndroidViewModel {
                 promptBuilder.append("Ты — ИИ-ассистент инженера. Твоя роль — отвечать на вопросы пользователя о проекте, анализировать ошибки, объяснять причины сбоев и давать рекомендации по ремонту/настройке.\n\n");
                 promptBuilder.append(contextBuilder.toString());
                 promptBuilder.append("Предыдущая история диалога:\n");
-                if (history != null) {
-                    for (ru.mogcommunity.rbr_project.data.model.ChatMessage msg : history) {
-                        if (msg.getId().equals(messageId)) continue;
-                        if ("user".equals(msg.getSender())) {
-                            promptBuilder.append("Пользователь: ").append(msg.getText()).append("\n");
-                        } else {
-                            promptBuilder.append("ИИ-ассистент: ").append(msg.getText()).append("\n");
-                        }
-                    }
-                }
+                promptBuilder.append(historyPrompt.toString());
                 promptBuilder.append("\nНовый вопрос пользователя: ").append(cleanText).append("\n\n");
                 promptBuilder.append("Инструкция для ответа: Отвечай технически точно, кратко и по существу на русском языке. Ответ должен быть обычным текстом, БЕЗ использования Markdown разметки (не используй звездочки *, решетки #, списки, жирный или курсивный текст).");
                 prompt = promptBuilder.toString();
@@ -352,7 +423,7 @@ public class ProjectViewModel extends AndroidViewModel {
                     return;
                 }
                 
-                geminiClient.analyzeError(apiKey, prompt, new GeminiClient.GeminiCallback() {
+                geminiClient.analyzeError(apiKey, prompt, null, null, new GeminiClient.GeminiCallback() {
                     @Override
                     public void onSuccess(String plan) {
                         ru.mogcommunity.rbr_project.data.model.ChatMessage aiMsg = new ru.mogcommunity.rbr_project.data.model.ChatMessage(
@@ -408,6 +479,14 @@ public class ProjectViewModel extends AndroidViewModel {
                     isChatLoading.postValue(false);
                 }
             }
+            
+            if (history != null && history.size() >= 10 && activeHistory.size() >= 6) {
+                String pId = projectId;
+                if (!activeSummarizations.contains(pId)) {
+                    activeSummarizations.add(pId);
+                    triggerBackgroundChatSummarization(project, lastSummarizedIndex, history);
+                }
+            }
         });
     }
 
@@ -417,6 +496,91 @@ public class ProjectViewModel extends AndroidViewModel {
 
     public void setActiveProjectId(String activeProjectId) {
         this.activeProjectId = activeProjectId;
+    }
+
+    private void triggerBackgroundChatSummarization(Project project, int lastSummarizedIndex, List<ru.mogcommunity.rbr_project.data.model.ChatMessage> history) {
+        ru.mogcommunity.rbr_project.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
+            int newCutoff = history.size() - 3;
+            if (newCutoff <= lastSummarizedIndex + 1) {
+                activeSummarizations.remove(project.getId());
+                return;
+            }
+
+            List<ru.mogcommunity.rbr_project.data.model.ChatMessage> newBatchToSummarize = new java.util.ArrayList<>();
+            for (int i = lastSummarizedIndex + 1; i < newCutoff; i++) {
+                newBatchToSummarize.add(history.get(i));
+            }
+
+            if (newBatchToSummarize.isEmpty()) {
+                activeSummarizations.remove(project.getId());
+                return;
+            }
+
+            ru.mogcommunity.rbr_project.data.model.ChatMessage newLastSumMsg = history.get(newCutoff - 1);
+
+            StringBuilder sumPrompt = new StringBuilder();
+            sumPrompt.append("Ты — ИИ-ассистент, помогающий сжать историю диалога. Твоя задача — составить краткую выжимку (2-3 предложения) на русском языке.\n");
+            if (project.getChatSummary() != null && !project.getChatSummary().isEmpty()) {
+                sumPrompt.append("Предыдущая сводка диалога:\n").append(project.getChatSummary()).append("\n\n");
+            }
+            sumPrompt.append("Новые сообщения для добавления в сводку:\n");
+            for (ru.mogcommunity.rbr_project.data.model.ChatMessage m : newBatchToSummarize) {
+                sumPrompt.append(m.getSender().equals("user") ? "Пользователь: " : "ИИ-ассистент: ").append(m.getText()).append("\n");
+            }
+            sumPrompt.append("\nНапиши обновленную единую краткую сводку диалога на русском языке (2-3 предложения), объединяющую предыдущую сводку и новые сообщения. Ответ должен быть простым текстом без Markdown.");
+
+            String selectedModel = preferenceManager.getSelectedModel();
+            if ("gemini".equals(selectedModel)) {
+                String apiKey = preferenceManager.getGeminiApiKey();
+                if (apiKey.trim().isEmpty()) {
+                    activeSummarizations.remove(project.getId());
+                    return;
+                }
+
+                geminiClient.analyzeError(apiKey, sumPrompt.toString(), null, null, new GeminiClient.GeminiCallback() {
+                    @Override
+                    public void onSuccess(String plan) {
+                        ru.mogcommunity.rbr_project.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
+                            project.setChatSummary(ru.mogcommunity.rbr_project.ui.helper.MarkdownStripper.strip(plan));
+                            project.setLastSummarizedMessageId(newLastSumMsg.getId());
+                            repository.updateProject(project);
+                        });
+                        activeSummarizations.remove(project.getId());
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        Log.e("RBR_Summarization", "Error summarising: " + errorMessage);
+                        activeSummarizations.remove(project.getId());
+                    }
+                });
+            } else {
+                ru.mogcommunity.rbr_project.data.local.LocalAiManager localAiManager = 
+                        ru.mogcommunity.rbr_project.data.local.LocalAiManager.getInstance(getApplication());
+                
+                if (localAiManager.isModelAvailable(selectedModel)) {
+                    localAiManager.runInference(selectedModel, sumPrompt.toString(), new ru.mogcommunity.rbr_project.data.local.LocalAiManager.InferenceCallback() {
+                        @Override
+                        public void onSuccess(String output) {
+                            ru.mogcommunity.rbr_project.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
+                                project.setChatSummary(ru.mogcommunity.rbr_project.ui.helper.MarkdownStripper.strip(output));
+                                project.setLastSummarizedMessageId(newLastSumMsg.getId());
+                                repository.updateProject(project);
+                            });
+                            activeSummarizations.remove(project.getId());
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.e("RBR_Summarization", "Error summarising locally: " + error);
+                            activeSummarizations.remove(project.getId());
+                        }
+                    });
+                } else {
+                    activeSummarizations.remove(project.getId());
+                }
+            }
+        });
     }
 }
 

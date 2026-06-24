@@ -22,6 +22,7 @@ import ru.mogcommunity.rbr_project.ui.adapter.GalleryAdapter;
 import ru.mogcommunity.rbr_project.ui.adapter.ProjectAdapter;
 import ru.mogcommunity.rbr_project.ui.adapter.SnapshotAdapter;
 import ru.mogcommunity.rbr_project.ui.adapter.ChatMessageAdapter;
+import ru.mogcommunity.rbr_project.ui.adapter.ProjectPhotoAdapter;
 import ru.mogcommunity.rbr_project.ui.helper.SpaceItemDecoration;
 import ru.mogcommunity.rbr_project.viewmodel.ProjectViewModel;
 import com.google.android.material.snackbar.Snackbar;
@@ -32,7 +33,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
 public class ProjectsFragment extends Fragment {
     private FragmentProjectsBinding binding;
     private ProjectViewModel viewModel;
@@ -47,6 +50,8 @@ public class ProjectsFragment extends Fragment {
     private androidx.lifecycle.LiveData<List<Snapshot>> currentSnapshotsLiveData;
     private String projectSearchQuery = "";
     private ViewTreeObserver.OnGlobalLayoutListener keyboardLayoutListener;
+    private String selectedTagFilter = null;
+    private List<Snapshot> currentProjectSnapshotsList = new ArrayList<>();
 
     @Nullable
     @Override
@@ -109,11 +114,26 @@ public class ProjectsFragment extends Fragment {
                     imm.showSoftInput(binding.inputChatMessage, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
                 }
             }
+
+            @Override
+            public void onPhotoClick(String imageUrl) {
+                showFullScreenImage(imageUrl);
+            }
+
+            @Override
+            public void onTagClick(String tag) {
+                applyTagFilter(tag);
+            }
         });
         binding.rvSnapshotsTimeline.setAdapter(snapshotAdapter);
 
         binding.rvProjectGalleryGrid.setLayoutManager(new GridLayoutManager(getContext(), 2));
-        projectGalleryAdapter = new GalleryAdapter(new ArrayList<>());
+        projectGalleryAdapter = new GalleryAdapter(new ArrayList<>(), new ProjectPhotoAdapter.OnPhotoClickListener() {
+            @Override
+            public void onPhotoClick(Snapshot snapshot) {
+                showFullScreenImage(snapshot.getImageUrl());
+            }
+        });
         binding.rvProjectGalleryGrid.setAdapter(projectGalleryAdapter);
         binding.rvProjectGalleryGrid.addItemDecoration(new SpaceItemDecoration(6, false));
 
@@ -149,6 +169,18 @@ public class ProjectsFragment extends Fragment {
             if (selectedProject != null) {
                 AddSnapshotBottomSheet bottomSheet = AddSnapshotBottomSheet.newInstance(selectedProject.getId());
                 bottomSheet.show(getChildFragmentManager(), "AddSnapshotBottomSheet");
+            }
+        });
+
+        binding.btnEditProject.setOnClickListener(v -> {
+            if (selectedProject != null) {
+                EditProjectBottomSheet bottomSheet = EditProjectBottomSheet.newInstance(
+                        selectedProject.getId(),
+                        selectedProject.getName(),
+                        selectedProject.getDescription(),
+                        selectedProject.getConfigEnv()
+                );
+                bottomSheet.show(getChildFragmentManager(), "EditProjectBottomSheet");
             }
         });
 
@@ -212,6 +244,10 @@ public class ProjectsFragment extends Fragment {
                     binding.inputChatMessage.setText("");
                 }
             }
+        });
+
+        binding.chipActiveTagFilter.setOnCloseIconClickListener(v -> {
+            applyTagFilter(null);
         });
 
         keyboardLayoutListener = () -> {
@@ -305,6 +341,7 @@ public class ProjectsFragment extends Fragment {
 
     private void observeViewModel() {
         viewModel.getAllProjects().observe(getViewLifecycleOwner(), projects -> {
+            if (binding == null) return;
             if (projects != null) {
                 allProjectsList = projects;
             } else {
@@ -314,6 +351,7 @@ public class ProjectsFragment extends Fragment {
         });
 
         viewModel.getAiError().observe(getViewLifecycleOwner(), error -> {
+            if (binding == null) return;
             if (error != null) {
                 Snackbar.make(binding.getRoot(), error, Snackbar.LENGTH_LONG).show();
                 viewModel.clearAiError();
@@ -321,16 +359,19 @@ public class ProjectsFragment extends Fragment {
         });
 
         viewModel.getIsAiLoading().observe(getViewLifecycleOwner(), loading -> {
+            if (binding == null) return;
             snapshotAdapter.setAiLoading(loading);
         });
 
         viewModel.getIsChatLoading().observe(getViewLifecycleOwner(), loading -> {
+            if (binding == null) return;
             binding.chatProgress.setVisibility(loading ? View.VISIBLE : View.GONE);
             binding.btnSendChatMessage.setEnabled(!loading);
             binding.inputChatMessage.setEnabled(!loading);
         });
 
         viewModel.getChatError().observe(getViewLifecycleOwner(), error -> {
+            if (binding == null) return;
             if (error != null) {
                 Snackbar.make(binding.getRoot(), error, Snackbar.LENGTH_LONG).show();
                 viewModel.clearChatError();
@@ -361,7 +402,15 @@ public class ProjectsFragment extends Fragment {
         binding.textProjectDate.setText("Дата начала: " + dateFormat.format(new Date(project.getCreatedAt())));
         binding.textSnapshotsCount.setText("Снимков: " + project.getSnapshotsCount());
 
+        if (project.getConfigEnv() != null && !project.getConfigEnv().trim().isEmpty()) {
+            binding.layoutProjectConfigContainer.setVisibility(View.VISIBLE);
+            binding.textProjectConfig.setText(project.getConfigEnv().trim());
+        } else {
+            binding.layoutProjectConfigContainer.setVisibility(View.GONE);
+        }
+
         if (isNewProject) {
+            selectedTagFilter = null;
             TabLayout.Tab firstTab = binding.tabLayoutProjectModes.getTabAt(0);
             if (firstTab != null) {
                 firstTab.select();
@@ -372,17 +421,9 @@ public class ProjectsFragment extends Fragment {
             }
             currentSnapshotsLiveData = viewModel.getSnapshotsForProject(project.getId());
             currentSnapshotsLiveData.observe(getViewLifecycleOwner(), snapshots -> {
-                snapshotAdapter.updateList(snapshots);
-
-                List<Snapshot> gallerySnapshots = new ArrayList<>();
-                if (snapshots != null) {
-                    for (Snapshot s : snapshots) {
-                        if (s.getImageUrl() != null && !s.getImageUrl().trim().isEmpty()) {
-                            gallerySnapshots.add(s);
-                        }
-                    }
-                }
-                projectGalleryAdapter.updateList(gallerySnapshots);
+                if (binding == null) return;
+                currentProjectSnapshotsList = snapshots != null ? snapshots : new ArrayList<>();
+                filterAndDisplaySnapshots();
             });
 
             if (currentChatLiveData != null) {
@@ -390,11 +431,16 @@ public class ProjectsFragment extends Fragment {
             }
             currentChatLiveData = viewModel.getChatMessagesForProject(project.getId());
             currentChatLiveData.observe(getViewLifecycleOwner(), messages -> {
+                if (binding == null) return;
                 chatMessageAdapter.updateList(messages);
                 if (messages != null && !messages.isEmpty()) {
                     binding.cardEmptyChat.setVisibility(View.GONE);
                     binding.rvChatMessages.setVisibility(View.VISIBLE);
-                    binding.rvChatMessages.post(() -> binding.rvChatMessages.scrollToPosition(messages.size() - 1));
+                    binding.rvChatMessages.post(() -> {
+                        if (binding != null) {
+                            binding.rvChatMessages.scrollToPosition(messages.size() - 1);
+                        }
+                    });
                 } else {
                     binding.cardEmptyChat.setVisibility(View.VISIBLE);
                     binding.rvChatMessages.setVisibility(View.GONE);
@@ -413,5 +459,73 @@ public class ProjectsFragment extends Fragment {
         }
         super.onDestroyView();
         binding = null;
+    }
+
+    private void showFullScreenImage(String imageUrl) {
+        if (getContext() == null || imageUrl == null || imageUrl.trim().isEmpty()) return;
+
+        android.app.Dialog dialog = new android.app.Dialog(getContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        dialog.setContentView(R.layout.dialog_full_screen_image);
+
+        android.widget.ImageView imageView = dialog.findViewById(R.id.img_full_screen);
+        com.bumptech.glide.Glide.with(this)
+                .load(android.net.Uri.parse(imageUrl))
+                .error(android.R.drawable.ic_dialog_alert)
+                .into(imageView);
+
+        imageView.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
+    private void applyTagFilter(String tag) {
+        this.selectedTagFilter = tag;
+        filterAndDisplaySnapshots();
+    }
+
+    private void filterAndDisplaySnapshots() {
+        if (binding == null) return;
+
+        List<Snapshot> filtered = new ArrayList<>();
+        if (selectedTagFilter == null || selectedTagFilter.trim().isEmpty()) {
+            filtered.addAll(currentProjectSnapshotsList);
+            binding.layoutActiveTagFilter.setVisibility(View.GONE);
+        } else {
+            String filter = selectedTagFilter.trim().toLowerCase();
+            for (Snapshot s : currentProjectSnapshotsList) {
+                String tags = s.getTags();
+                if (tags != null && !tags.trim().isEmpty()) {
+                    String[] tagArray = tags.split(",");
+                    boolean matches = false;
+                    for (String t : tagArray) {
+                        if (t.trim().toLowerCase().equals(filter)) {
+                            matches = true;
+                            break;
+                        }
+                    }
+                    if (matches) {
+                        filtered.add(s);
+                    }
+                }
+            }
+            binding.layoutActiveTagFilter.setVisibility(View.VISIBLE);
+            binding.chipActiveTagFilter.setText("#" + selectedTagFilter);
+
+            int hue = Math.abs(selectedTagFilter.hashCode()) % 360;
+            int backgroundColor = android.graphics.Color.HSVToColor(new float[]{hue, 0.12f, 0.96f});
+            int textColor = android.graphics.Color.HSVToColor(new float[]{hue, 0.85f, 0.38f});
+            binding.chipActiveTagFilter.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(backgroundColor));
+            binding.chipActiveTagFilter.setTextColor(textColor);
+            binding.chipActiveTagFilter.setCloseIconTint(android.content.res.ColorStateList.valueOf(textColor));
+        }
+        snapshotAdapter.updateList(filtered);
+
+        List<Snapshot> gallerySnapshots = new ArrayList<>();
+        for (Snapshot s : currentProjectSnapshotsList) {
+            if (s.getImageUrl() != null && !s.getImageUrl().trim().isEmpty()) {
+                gallerySnapshots.add(s);
+            }
+        }
+        projectGalleryAdapter.updateList(gallerySnapshots);
     }
 }

@@ -30,6 +30,8 @@ public class SnapshotAdapter extends RecyclerView.Adapter<SnapshotAdapter.Snapsh
         void onDeleteClick(Snapshot snapshot);
         void onAiAnalysisClick(Snapshot snapshot);
         void onDiscussClick(Snapshot snapshot);
+        void onPhotoClick(String imageUrl);
+        void onTagClick(String tag);
     }
 
     public SnapshotAdapter(List<Snapshot> snapshots, OnSnapshotClickListener listener) {
@@ -85,6 +87,39 @@ public class SnapshotAdapter extends RecyclerView.Adapter<SnapshotAdapter.Snapsh
             binding.textSnapshotTime.setText(dateTimeFormat.format(new Date(snapshot.getTimestamp())));
             binding.textSnapshotDesc.setText(snapshot.getDescription());
 
+            binding.chipGroupTags.removeAllViews();
+            String tagsString = snapshot.getTags();
+            if (tagsString != null && !tagsString.trim().isEmpty()) {
+                binding.chipGroupTags.setVisibility(View.VISIBLE);
+                String[] tags = tagsString.split(",");
+                for (String tag : tags) {
+                    final String cleanTag = tag.trim();
+                    if (cleanTag.isEmpty()) continue;
+                    com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(itemView.getContext());
+                    chip.setText(cleanTag);
+                    chip.setClickable(true);
+                    chip.setFocusable(true);
+
+                    int hue = Math.abs(cleanTag.hashCode()) % 360;
+                    int backgroundColor = android.graphics.Color.HSVToColor(new float[]{hue, 0.12f, 0.96f});
+                    int textColor = android.graphics.Color.HSVToColor(new float[]{hue, 0.85f, 0.38f});
+                    
+                    chip.setChipBackgroundColor(ColorStateList.valueOf(backgroundColor));
+                    chip.setTextColor(textColor);
+                    chip.setChipStrokeColor(ColorStateList.valueOf(textColor));
+                    chip.setChipStrokeWidth(1.5f);
+                    
+                    chip.setOnClickListener(v -> {
+                        if (listener != null) {
+                            listener.onTagClick(cleanTag);
+                        }
+                    });
+                    binding.chipGroupTags.addView(chip);
+                }
+            } else {
+                binding.chipGroupTags.setVisibility(View.GONE);
+            }
+
             String imgUrl = snapshot.getImageUrl();
             if (imgUrl != null && !imgUrl.trim().isEmpty()) {
                 binding.imgSnapshot.setVisibility(View.VISIBLE);
@@ -93,8 +128,40 @@ public class SnapshotAdapter extends RecyclerView.Adapter<SnapshotAdapter.Snapsh
                         .placeholder(android.R.drawable.ic_menu_gallery)
                         .error(android.R.drawable.ic_dialog_alert)
                         .into(binding.imgSnapshot);
+
+                binding.imgSnapshot.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onPhotoClick(imgUrl);
+                    }
+                });
             } else {
                 binding.imgSnapshot.setVisibility(View.GONE);
+            }
+
+            String secondaryImagesStr = snapshot.getSecondaryImages();
+            if (secondaryImagesStr != null && !secondaryImagesStr.trim().isEmpty()) {
+                binding.rvSecondaryImages.setVisibility(View.VISIBLE);
+                String[] images = secondaryImagesStr.split(",");
+                java.util.List<String> imageList = new java.util.ArrayList<>();
+                for (String img : images) {
+                    if (!img.trim().isEmpty()) {
+                        imageList.add(img.trim());
+                    }
+                }
+                if (!imageList.isEmpty()) {
+                    binding.rvSecondaryImages.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(
+                            itemView.getContext(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false));
+                    SecondaryImagesAdapter secondaryAdapter = new SecondaryImagesAdapter(imageList, url -> {
+                        if (listener != null) {
+                            listener.onPhotoClick(url);
+                        }
+                    });
+                    binding.rvSecondaryImages.setAdapter(secondaryAdapter);
+                } else {
+                    binding.rvSecondaryImages.setVisibility(View.GONE);
+                }
+            } else {
+                binding.rvSecondaryImages.setVisibility(View.GONE);
             }
 
             int errorColor;

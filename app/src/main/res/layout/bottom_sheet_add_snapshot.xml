@@ -56,30 +56,40 @@
                     android:textColor="?android:attr/textColorPrimary" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Image Pick Area -->
-            <LinearLayout
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_layout_snapshot_tags"
+                style="@style/Widget.RollAndBack.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="16dp"
+                android:hint="Теги (через запятую, например: тест, плата)">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_take_photo"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/input_snapshot_tags"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Снимок устройства" />
+                    android:inputType="text"
+                    android:textColor="?android:attr/textColorPrimary" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-                <ImageView
-                    android:id="@+id/img_preview"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_marginStart="16dp"
-                    android:scaleType="centerCrop"
-                    android:visibility="gone"
-                    android:contentDescription="Превью снимка" />
-            </LinearLayout>
+            <!-- Media Attachments Section -->
+            <TextView
+                android:id="@+id/text_photos_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Фотографии"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_media_previews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
             <!-- Error Toggle Switch -->
             <com.google.android.material.card.MaterialCardView

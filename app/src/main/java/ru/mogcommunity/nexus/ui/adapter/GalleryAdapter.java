@@ -16,9 +16,11 @@ import java.util.List;
 
 public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.GalleryViewHolder> {
     private final List<Snapshot> snapshots;
+    private final ProjectPhotoAdapter.OnPhotoClickListener listener;
 
-    public GalleryAdapter(List<Snapshot> snapshots) {
+    public GalleryAdapter(List<Snapshot> snapshots, ProjectPhotoAdapter.OnPhotoClickListener listener) {
         this.snapshots = snapshots;
+        this.listener = listener;
     }
 
     @NonNull
@@ -26,7 +28,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.GalleryV
     public GalleryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         ItemGalleryBinding binding = ItemGalleryBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false);
-        return new GalleryViewHolder(binding);
+        return new GalleryViewHolder(binding, listener);
     }
 
     @Override
@@ -50,12 +52,14 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.GalleryV
 
     static class GalleryViewHolder extends RecyclerView.ViewHolder {
         private final ItemGalleryBinding binding;
+        private final ProjectPhotoAdapter.OnPhotoClickListener listener;
 
         private final java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault());
 
-        GalleryViewHolder(ItemGalleryBinding binding) {
+        GalleryViewHolder(ItemGalleryBinding binding, ProjectPhotoAdapter.OnPhotoClickListener listener) {
             super(binding.getRoot());
             this.binding = binding;
+            this.listener = listener;
         }
 
         void bind(Snapshot snapshot) {
@@ -70,6 +74,12 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.GalleryV
                         .error(android.R.drawable.ic_dialog_alert)
                         .into(binding.imgGalleryItem);
             }
+
+            itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onPhotoClick(snapshot);
+                }
+            });
         }
     }
 }

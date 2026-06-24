@@ -33,6 +33,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class GalleryFragment extends Fragment {
     private FragmentGalleryBinding binding;
     private ProjectViewModel viewModel;

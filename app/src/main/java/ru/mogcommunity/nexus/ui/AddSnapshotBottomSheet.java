@@ -18,26 +18,145 @@ import ru.mogcommunity.rbr_project.databinding.BottomSheetAddSnapshotBinding;
 import ru.mogcommunity.rbr_project.viewmodel.ProjectViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
+import java.util.List;
 import java.util.UUID;
+import androidx.recyclerview.widget.RecyclerView;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class AddSnapshotBottomSheet extends BottomSheetDialogFragment {
     private static final String ARG_PROJECT_ID = "project_id";
 
     private BottomSheetAddSnapshotBinding binding;
     private ProjectViewModel viewModel;
     private String projectId;
-    private Uri selectedImageUri;
+    private final List<Uri> selectedPhotoUris = new java.util.ArrayList<>();
+    private PhotoPickerAdapter photoPickerAdapter;
 
-    private final ActivityResultLauncher<String> selectImageLauncher = registerForActivityResult(
-            new ActivityResultContracts.GetContent(),
-            uri -> {
-                if (uri != null) {
-                    selectedImageUri = uri;
-                    binding.imgPreview.setVisibility(View.VISIBLE);
-                    binding.imgPreview.setImageURI(uri);
+    private final ActivityResultLauncher<String> selectPhotosLauncher = registerForActivityResult(
+            new ActivityResultContracts.GetMultipleContents(),
+            uris -> {
+                if (uris != null && !uris.isEmpty()) {
+                    selectedPhotoUris.addAll(uris);
+                    updatePhotoPickerAdapter();
                 }
             }
     );
+
+    private void updatePhotoPickerAdapter() {
+        if (photoPickerAdapter == null) {
+            photoPickerAdapter = new PhotoPickerAdapter(
+                    selectedPhotoUris,
+                    () -> selectPhotosLauncher.launch("image/*"),
+                    position -> {
+                        selectedPhotoUris.remove((int) position);
+                        updatePhotoPickerAdapter();
+                    }
+            );
+            binding.rvMediaPreviews.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(
+                    getContext(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false));
+            binding.rvMediaPreviews.setAdapter(photoPickerAdapter);
+        } else {
+            photoPickerAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private class PhotoPickerAdapter extends RecyclerView.Adapter<PhotoPickerAdapter.ViewHolder> {
+        private final List<Uri> uris;
+        private final Runnable onAddClick;
+        private final java.util.function.Consumer<Integer> onDeleteClick;
+
+        public PhotoPickerAdapter(List<Uri> uris, Runnable onAddClick, java.util.function.Consumer<Integer> onDeleteClick) {
+            this.uris = uris;
+            this.onAddClick = onAddClick;
+            this.onDeleteClick = onDeleteClick;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if (position == uris.size()) {
+                return 1; 
+            }
+            return 0; 
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_photo_picker_card, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            if (getItemViewType(position) == 1) {
+                holder.bindAddButton();
+            } else {
+                holder.bindPhoto(uris.get(position), position);
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return uris.size() + 1; 
+        }
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            private final ImageView imgPhoto;
+            private final View layoutAddButton;
+            private final TextView textMainBadge;
+            private final View btnDeletePhoto;
+
+            public ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                imgPhoto = itemView.findViewById(R.id.img_photo);
+                layoutAddButton = itemView.findViewById(R.id.layout_add_button);
+                textMainBadge = itemView.findViewById(R.id.text_main_badge);
+                btnDeletePhoto = itemView.findViewById(R.id.btn_delete_photo);
+            }
+
+            public void bindAddButton() {
+                imgPhoto.setVisibility(View.GONE);
+                layoutAddButton.setVisibility(View.VISIBLE);
+                textMainBadge.setVisibility(View.GONE);
+                btnDeletePhoto.setVisibility(View.GONE);
+                itemView.setOnClickListener(v -> {
+                    if (onAddClick != null) {
+                        onAddClick.run();
+                    }
+                });
+            }
+
+            public void bindPhoto(Uri uri, int position) {
+                imgPhoto.setVisibility(View.VISIBLE);
+                layoutAddButton.setVisibility(View.GONE);
+                textMainBadge.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
+                btnDeletePhoto.setVisibility(View.VISIBLE);
+
+                com.bumptech.glide.Glide.with(itemView.getContext())
+                        .load(uri)
+                        .placeholder(android.R.drawable.ic_menu_gallery)
+                        .error(android.R.drawable.ic_dialog_alert)
+                        .into(imgPhoto);
+
+                btnDeletePhoto.setOnClickListener(v -> {
+                    if (onDeleteClick != null) {
+                        onDeleteClick.accept(position);
+                    }
+                });
+                itemView.setOnClickListener(v -> {
+                    if (position > 0 && position < uris.size()) {
+                        Uri clickedUri = uris.remove(position);
+                        uris.add(0, clickedUri);
+                        notifyDataSetChanged();
+                    }
+                });
+            }
+        }
+    }
 
     public static AddSnapshotBottomSheet newInstance(String projectId) {
         AddSnapshotBottomSheet fragment = new AddSnapshotBottomSheet();
@@ -114,12 +233,11 @@ public class AddSnapshotBottomSheet extends BottomSheetDialogFragment {
         viewModel = new ViewModelProvider(requireActivity()).get(ProjectViewModel.class);
 
         setupListeners();
+        updatePhotoPickerAdapter();
         applyErrorColoring(binding.switchError.isChecked());
     }
 
     private void setupListeners() {
-        binding.btnTakePhoto.setOnClickListener(v -> selectImageLauncher.launch("image/*"));
-
         binding.switchError.setOnCheckedChangeListener((buttonView, isChecked) -> {
             binding.inputLayoutErrorLog.setVisibility(isChecked ? View.VISIBLE : View.GONE);
             applyErrorColoring(isChecked);
@@ -128,6 +246,7 @@ public class AddSnapshotBottomSheet extends BottomSheetDialogFragment {
         binding.btnSubmitSnapshot.setOnClickListener(v -> {
             String title = binding.inputSnapshotTitle.getText() != null ? binding.inputSnapshotTitle.getText().toString().trim() : "";
             String desc = binding.inputSnapshotDesc.getText() != null ? binding.inputSnapshotDesc.getText().toString().trim() : "";
+            String tags = binding.inputSnapshotTags.getText() != null ? binding.inputSnapshotTags.getText().toString().trim() : "";
             boolean hasError = binding.switchError.isChecked();
             String errorLog = hasError && binding.inputErrorLog.getText() != null ? binding.inputErrorLog.getText().toString().trim() : "";
 
@@ -137,9 +256,25 @@ public class AddSnapshotBottomSheet extends BottomSheetDialogFragment {
             }
 
             String snapshotId = UUID.randomUUID().toString();
-            String localImageString = selectedImageUri != null ? selectedImageUri.toString() : "";
 
-            viewModel.addSnapshot(snapshotId, projectId, title, desc, hasError, errorLog, localImageString, selectedImageUri);
+            Uri localImageUri = selectedPhotoUris.isEmpty() ? null : selectedPhotoUris.get(0);
+            String localImageString = localImageUri != null ? localImageUri.toString() : "";
+
+            List<Uri> secondaryImageUris = new java.util.ArrayList<>();
+            if (selectedPhotoUris.size() > 1) {
+                secondaryImageUris.addAll(selectedPhotoUris.subList(1, selectedPhotoUris.size()));
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < secondaryImageUris.size(); i++) {
+                sb.append(secondaryImageUris.get(i).toString());
+                if (i < secondaryImageUris.size() - 1) {
+                    sb.append(",");
+                }
+            }
+            String secondaryImages = sb.toString();
+
+            viewModel.addSnapshot(snapshotId, projectId, title, desc, hasError, errorLog, localImageString, localImageUri, tags, secondaryImages, secondaryImageUris);
             dismiss();
         });
     }
@@ -150,6 +285,8 @@ public class AddSnapshotBottomSheet extends BottomSheetDialogFragment {
         int outlineColor;
         int surfaceVariantColor;
 
+        int errorContainerColor;
+
         android.util.TypedValue typedValue = new android.util.TypedValue();
         if (getContext() != null && getDialog() != null) {
             android.content.Context ctx = requireDialog().getContext();
@@ -158,6 +295,12 @@ public class AddSnapshotBottomSheet extends BottomSheetDialogFragment {
                 errorColor = typedValue.data;
             } else {
                 errorColor = getResources().getColor(R.color.error);
+            }
+            
+            if (ctx.getTheme().resolveAttribute(com.google.android.material.R.attr.colorErrorContainer, typedValue, true)) {
+                errorContainerColor = typedValue.data;
+            } else {
+                errorContainerColor = androidx.core.graphics.ColorUtils.setAlphaComponent(errorColor, 76);
             }
             
             if (ctx.getTheme().resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)) {
@@ -179,13 +322,14 @@ public class AddSnapshotBottomSheet extends BottomSheetDialogFragment {
             }
         } else {
             errorColor = getResources().getColor(R.color.error);
+            errorContainerColor = androidx.core.graphics.ColorUtils.setAlphaComponent(errorColor, 76);
             primaryColor = getResources().getColor(R.color.primary);
             outlineColor = getResources().getColor(R.color.outline);
             surfaceVariantColor = getResources().getColor(R.color.surface_variant);
         }
 
         binding.switchError.setThumbTintList(ColorStateList.valueOf(hasError ? errorColor : outlineColor));
-        binding.switchError.setTrackTintList(ColorStateList.valueOf(hasError ? errorColor : surfaceVariantColor));
+        binding.switchError.setTrackTintList(ColorStateList.valueOf(hasError ? errorContainerColor : surfaceVariantColor));
 
         binding.cardErrorToggle.setStrokeColor(ColorStateList.valueOf(hasError ? errorColor : outlineColor));
 
@@ -212,6 +356,7 @@ public class AddSnapshotBottomSheet extends BottomSheetDialogFragment {
 
         binding.inputLayoutSnapshotTitle.setBoxStrokeColorStateList(selectorStateList);
         binding.inputLayoutSnapshotDesc.setBoxStrokeColorStateList(selectorStateList);
+        binding.inputLayoutSnapshotTags.setBoxStrokeColorStateList(selectorStateList);
         binding.inputLayoutErrorLog.setBoxStrokeColorStateList(selectorStateList);
 
         binding.inputLayoutSnapshotTitle.setError(null);
@@ -222,5 +367,6 @@ public class AddSnapshotBottomSheet extends BottomSheetDialogFragment {
         super.onDestroyView();
         binding = null;
     }
+
 }
 

@@ -121,6 +121,8 @@ public class FirebaseManager {
         StorageReference fileRef = storage.getReference()
                 .child("users/" + userId + "/projects/" + projectId + "/snapshots/" + snapshotId + ".jpg");
 
+        java.lang.ref.WeakReference<OnCompleteListener<Uri>> weakListener = new java.lang.ref.WeakReference<>(listener);
+
         UploadTask uploadTask = fileRef.putFile(localImageUri);
         uploadTask.continueWithTask(task -> {
             if (!task.isSuccessful()) {
@@ -129,7 +131,12 @@ public class FirebaseManager {
                 }
             }
             return fileRef.getDownloadUrl();
-        }).addOnCompleteListener(listener);
+        }).addOnCompleteListener(task -> {
+            OnCompleteListener<Uri> originalListener = weakListener.get();
+            if (originalListener != null) {
+                originalListener.onComplete(task);
+            }
+        });
      }
 
     public void fetchProjectsFromFirestore(OnCompleteListener<QuerySnapshot> listener) {

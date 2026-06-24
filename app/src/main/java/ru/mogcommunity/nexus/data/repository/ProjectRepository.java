@@ -1,6 +1,5 @@
 package ru.mogcommunity.rbr_project.data.repository;
 
-import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
@@ -15,6 +14,9 @@ import ru.mogcommunity.rbr_project.data.model.Snapshot;
 import ru.mogcommunity.rbr_project.data.remote.FirebaseManager;
 
 import java.util.List;
+import javax.inject.Inject;
+import android.content.Context;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 
 public class ProjectRepository {
     private final ProjectDao projectDao;
@@ -22,14 +24,23 @@ public class ProjectRepository {
     private final ru.mogcommunity.rbr_project.data.local.ChatMessageDao chatMessageDao;
     private final FirebaseManager firebaseManager;
     private final PreferenceManager preferenceManager;
+    private final Context context;
 
-    public ProjectRepository(Context context) {
-        AppDatabase db = AppDatabase.getDatabase(context);
-        projectDao = db.projectDao();
-        snapshotDao = db.snapshotDao();
-        chatMessageDao = db.chatMessageDao();
-        firebaseManager = FirebaseManager.getInstance();
-        preferenceManager = PreferenceManager.getInstance(context);
+    @Inject
+    public ProjectRepository(
+            ProjectDao projectDao,
+            SnapshotDao snapshotDao,
+            ru.mogcommunity.rbr_project.data.local.ChatMessageDao chatMessageDao,
+            FirebaseManager firebaseManager,
+            PreferenceManager preferenceManager,
+            @ApplicationContext Context context
+    ) {
+        this.projectDao = projectDao;
+        this.snapshotDao = snapshotDao;
+        this.chatMessageDao = chatMessageDao;
+        this.firebaseManager = firebaseManager;
+        this.preferenceManager = preferenceManager;
+        this.context = context;
     }
 
     public LiveData<List<Project>> getAllProjects() {
@@ -89,9 +100,43 @@ public class ProjectRepository {
                 Log.e("RBR_ProjectRepository", "Error inserting project", e);
             }
         });
+     }
+
+    public void updateProjectDetails(String projectId, String name, String description, String configEnv) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            try {
+                Log.d("RBR_ProjectRepository", "Updating project details: " + projectId);
+                Project project = projectDao.getProjectById(projectId);
+                if (project != null) {
+                    project.setName(name);
+                    project.setDescription(description);
+                    project.setConfigEnv(configEnv);
+                    projectDao.update(project);
+                    if (preferenceManager.isCloudSyncEnabled() && firebaseManager.isUserLoggedIn()) {
+                        firebaseManager.saveProjectToFirestore(project, null);
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("RBR_ProjectRepository", "Error updating project details", e);
+            }
+        });
     }
 
-    public void deleteProject(Project project) {
+    public void updateProject(Project project) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            try {
+                Log.d("RBR_ProjectRepository", "Updating project: " + project.getId());
+                projectDao.update(project);
+                if (preferenceManager.isCloudSyncEnabled() && firebaseManager.isUserLoggedIn()) {
+                    firebaseManager.saveProjectToFirestore(project, null);
+                }
+            } catch (Exception e) {
+                Log.e("RBR_ProjectRepository", "Error updating project", e);
+            }
+        });
+    }
+
+     public void deleteProject(Project project) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             projectDao.delete(project);
             if (preferenceManager.isCloudSyncEnabled() && firebaseManager.isUserLoggedIn()) {
@@ -100,8 +145,62 @@ public class ProjectRepository {
         });
     }
 
-    public void insertSnapshot(Snapshot snapshot, Uri localImageUri) {
+    private Uri copyToInternalStorage(Context context, Uri uri, String destFileName) {
+        if (uri == null || !"content".equals(uri.getScheme())) {
+            return uri;
+        }
+        try {
+            java.io.File dir = new java.io.File(context.getFilesDir(), "snapshots");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            java.io.File destFile = new java.io.File(dir, destFileName);
+            try (java.io.InputStream is = context.getContentResolver().openInputStream(uri);
+                 java.io.OutputStream os = new java.io.FileOutputStream(destFile)) {
+                if (is != null) {
+                    byte[] buffer = new byte[8192];
+                    int read;
+                    while ((read = is.read(buffer)) != -1) {
+                        os.write(buffer, 0, read);
+                    }
+                    os.flush();
+                    return Uri.fromFile(destFile);
+                }
+            }
+        } catch (Exception e) {
+            Log.e("RBR_ProjectRepository", "Error copying image to internal storage", e);
+        }
+        return uri;
+    }
+
+    public void insertSnapshot(Snapshot snapshot, Uri localImageUri, List<Uri> secondaryUris) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
+            
+            Uri copiedMainUri = localImageUri;
+            if (localImageUri != null) {
+                copiedMainUri = copyToInternalStorage(context, localImageUri, "main_" + snapshot.getId() + ".jpg");
+                snapshot.setImageUrl(copiedMainUri.toString());
+            }
+
+            List<Uri> copiedSecondaryUris = new java.util.ArrayList<>();
+            if (secondaryUris != null) {
+                for (int i = 0; i < secondaryUris.size(); i++) {
+                    Uri copiedSec = copyToInternalStorage(context, secondaryUris.get(i), "sec_" + snapshot.getId() + "_" + i + ".jpg");
+                    copiedSecondaryUris.add(copiedSec);
+                }
+            }
+
+            if (!copiedSecondaryUris.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < copiedSecondaryUris.size(); i++) {
+                    sb.append(copiedSecondaryUris.get(i).toString());
+                    if (i < copiedSecondaryUris.size() - 1) {
+                        sb.append(",");
+                    }
+                }
+                snapshot.setSecondaryImages(sb.toString());
+            }
+
             snapshotDao.insert(snapshot);
 
             Project project = projectDao.getProjectById(snapshot.getProjectId());
@@ -115,25 +214,61 @@ public class ProjectRepository {
             }
 
             if (preferenceManager.isCloudSyncEnabled() && firebaseManager.isUserLoggedIn()) {
-                if (localImageUri != null) {
-                    firebaseManager.uploadSnapshotImage(snapshot.getProjectId(), snapshot.getId(), localImageUri, task -> {
+                final Uri finalMainUri = copiedMainUri;
+                if (finalMainUri != null) {
+                    firebaseManager.uploadSnapshotImage(snapshot.getProjectId(), snapshot.getId(), finalMainUri, task -> {
                         if (task.isSuccessful() && task.getResult() != null) {
                             String downloadUrl = task.getResult().toString();
                             snapshot.setImageUrl(downloadUrl);
-
-                            AppDatabase.databaseWriteExecutor.execute(() -> {
-                                snapshotDao.insert(snapshot);
-                                firebaseManager.saveSnapshotToFirestore(snapshot.getProjectId(), snapshot, null);
-                            });
-                        } else {
-                            firebaseManager.saveSnapshotToFirestore(snapshot.getProjectId(), snapshot, null);
                         }
+                        uploadSecondaryImagesAndSave(snapshot, copiedSecondaryUris);
                     });
                 } else {
-                    firebaseManager.saveSnapshotToFirestore(snapshot.getProjectId(), snapshot, null);
+                    uploadSecondaryImagesAndSave(snapshot, copiedSecondaryUris);
                 }
             }
         });
+    }
+
+    private void uploadSecondaryImagesAndSave(Snapshot snapshot, List<Uri> secondaryUris) {
+        if (secondaryUris == null || secondaryUris.isEmpty()) {
+            AppDatabase.databaseWriteExecutor.execute(() -> {
+                snapshotDao.insert(snapshot);
+                firebaseManager.saveSnapshotToFirestore(snapshot.getProjectId(), snapshot, null);
+            });
+            return;
+        }
+
+        final int total = secondaryUris.size();
+        final String[] uploadedUrls = new String[total];
+        final java.util.concurrent.atomic.AtomicInteger finished = new java.util.concurrent.atomic.AtomicInteger(0);
+
+        for (int i = 0; i < total; i++) {
+            final int index = i;
+            Uri uri = secondaryUris.get(i);
+            String subId = snapshot.getId() + "_sec_" + index;
+            firebaseManager.uploadSnapshotImage(snapshot.getProjectId(), subId, uri, task -> {
+                if (task.isSuccessful() && task.getResult() != null) {
+                    uploadedUrls[index] = task.getResult().toString();
+                } else {
+                    uploadedUrls[index] = uri.toString();
+                }
+                if (finished.incrementAndGet() == total) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int j = 0; j < total; j++) {
+                        sb.append(uploadedUrls[j]);
+                        if (j < total - 1) {
+                            sb.append(",");
+                        }
+                    }
+                    snapshot.setSecondaryImages(sb.toString());
+                    AppDatabase.databaseWriteExecutor.execute(() -> {
+                        snapshotDao.insert(snapshot);
+                        firebaseManager.saveSnapshotToFirestore(snapshot.getProjectId(), snapshot, null);
+                    });
+                }
+            });
+        }
     }
 
     public void updateSnapshot(Snapshot snapshot) {
@@ -169,19 +304,22 @@ public class ProjectRepository {
         void onSyncFailed(String error);
     }
 
-    private void mainThreadNotifySuccess(OnSyncCompleteListener listener) {
+    private void mainThreadNotifySuccess(java.lang.ref.WeakReference<OnSyncCompleteListener> weakListener) {
+        OnSyncCompleteListener listener = weakListener.get();
         if (listener == null) return;
         new android.os.Handler(android.os.Looper.getMainLooper()).post(listener::onSyncSuccess);
     }
 
-    private void mainThreadNotifyFailed(OnSyncCompleteListener listener, String error) {
+    private void mainThreadNotifyFailed(java.lang.ref.WeakReference<OnSyncCompleteListener> weakListener, String error) {
+        OnSyncCompleteListener listener = weakListener.get();
         if (listener == null) return;
         new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> listener.onSyncFailed(error));
     }
 
     public void syncWithCloud(OnSyncCompleteListener listener) {
+        java.lang.ref.WeakReference<OnSyncCompleteListener> weakListener = new java.lang.ref.WeakReference<>(listener);
         if (!firebaseManager.isUserLoggedIn()) {
-            mainThreadNotifyFailed(listener, "Пользователь не авторизован");
+            mainThreadNotifyFailed(weakListener, "Пользователь не авторизован");
             return;
         }
 
@@ -192,7 +330,7 @@ public class ProjectRepository {
 
                 firebaseManager.fetchProjectsFromFirestore(task -> {
                     if (!task.isSuccessful() || task.getResult() == null) {
-                        mainThreadNotifyFailed(listener, task.getException() != null ? task.getException().getMessage() : "Ошибка загрузки проектов");
+                        mainThreadNotifyFailed(weakListener, task.getException() != null ? task.getException().getMessage() : "Ошибка загрузки проектов");
                         return;
                     }
 
@@ -200,7 +338,7 @@ public class ProjectRepository {
                     final int totalProjects = remoteProjects.size();
                     
                     if (totalProjects == 0) {
-                        uploadLocalData(localProjects, localSnapshots, listener);
+                        uploadLocalData(localProjects, localSnapshots, weakListener);
                         return;
                     }
 
@@ -219,24 +357,24 @@ public class ProjectRepository {
                                         snapshotDao.insert(rs);
                                     }
                                     if (pendingQueries.decrementAndGet() == 0) {
-                                        uploadLocalData(localProjects, localSnapshots, listener);
+                                        uploadLocalData(localProjects, localSnapshots, weakListener);
                                     }
                                 });
                             } else {
                                 if (pendingQueries.decrementAndGet() == 0) {
-                                    uploadLocalData(localProjects, localSnapshots, listener);
+                                    uploadLocalData(localProjects, localSnapshots, weakListener);
                                 }
                             }
                         });
                     }
                 });
             } catch (Exception e) {
-                mainThreadNotifyFailed(listener, e.getMessage());
+                mainThreadNotifyFailed(weakListener, e.getMessage());
             }
         });
     }
 
-    private void uploadLocalData(List<Project> localProjects, List<Snapshot> localSnapshots, OnSyncCompleteListener listener) {
+    private void uploadLocalData(List<Project> localProjects, List<Snapshot> localSnapshots, java.lang.ref.WeakReference<OnSyncCompleteListener> weakListener) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             for (Project p : localProjects) {
                 firebaseManager.saveProjectToFirestore(p, null);
@@ -244,7 +382,7 @@ public class ProjectRepository {
             for (Snapshot s : localSnapshots) {
                 firebaseManager.saveSnapshotToFirestore(s.getProjectId(), s, null);
             }
-            mainThreadNotifySuccess(listener);
+            mainThreadNotifySuccess(weakListener);
         });
     }
 }

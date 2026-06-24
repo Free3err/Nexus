@@ -14,6 +14,9 @@ import ru.mogcommunity.rbr_project.data.PreferenceManager;
 import ru.mogcommunity.rbr_project.databinding.ActivitySplashBinding;
 import com.google.firebase.auth.FirebaseAuth;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class SplashActivity extends AppCompatActivity {
     private ActivitySplashBinding binding;
 

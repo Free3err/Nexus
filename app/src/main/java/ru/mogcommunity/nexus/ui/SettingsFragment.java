@@ -33,6 +33,9 @@ import ru.mogcommunity.rbr_project.databinding.FragmentSettingsBinding;
 import ru.mogcommunity.rbr_project.viewmodel.AuthViewModel;
 import ru.mogcommunity.rbr_project.viewmodel.ProjectViewModel;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class SettingsFragment extends Fragment {
     private FragmentSettingsBinding binding;
     private ProjectViewModel projectViewModel;

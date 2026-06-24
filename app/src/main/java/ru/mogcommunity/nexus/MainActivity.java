@@ -12,6 +12,9 @@ import ru.mogcommunity.rbr_project.ui.GalleryFragment;
 import ru.mogcommunity.rbr_project.ui.ProjectsFragment;
 import ru.mogcommunity.rbr_project.ui.SettingsFragment;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
 

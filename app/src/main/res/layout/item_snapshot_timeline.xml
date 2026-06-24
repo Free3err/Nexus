@@ -64,6 +64,16 @@
             android:textColor="?android:attr/textColorPrimary"
             android:textSize="14sp" />
 
+        <!-- Tags Group -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_tags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:chipSpacingHorizontal="6dp"
+            app:chipSpacingVertical="4dp"
+            android:visibility="gone" />
+
         <!-- Image preview -->
         <ImageView
             android:id="@+id/img_snapshot"
@@ -73,6 +83,16 @@
             android:scaleType="centerCrop"
             android:visibility="gone"
             android:contentDescription="Снимок устройства" />
+
+        <!-- Supporting photos list -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_secondary_images"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:visibility="gone" />
 
         <!-- Error Layout Block -->
         <LinearLayout

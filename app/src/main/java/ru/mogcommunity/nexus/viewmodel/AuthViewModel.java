@@ -16,6 +16,10 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import ru.mogcommunity.rbr_project.data.PreferenceManager;
 import ru.mogcommunity.rbr_project.data.remote.FirebaseManager;
 
+import javax.inject.Inject;
+import dagger.hilt.android.lifecycle.HiltViewModel;
+
+@HiltViewModel
 public class AuthViewModel extends AndroidViewModel {
     private final FirebaseManager firebaseManager;
     private final PreferenceManager preferenceManager;
@@ -24,10 +28,11 @@ public class AuthViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>(null);
 
-    public AuthViewModel(@NonNull Application application) {
+    @Inject
+    public AuthViewModel(@NonNull Application application, FirebaseManager firebaseManager, PreferenceManager preferenceManager) {
         super(application);
-        firebaseManager = FirebaseManager.getInstance();
-        preferenceManager = PreferenceManager.getInstance(application);
+        this.firebaseManager = firebaseManager;
+        this.preferenceManager = preferenceManager;
         checkLoginStatus();
     }
 
