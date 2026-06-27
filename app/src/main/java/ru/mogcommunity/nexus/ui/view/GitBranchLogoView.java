@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui.view;
+package ru.mogcommunity.rbrproject.ui.view;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -66,7 +66,7 @@ public class GitBranchLogoView extends View {
         float xOffset = (w - size) / 2.0f;
         float yOffset = (h - size) / 2.0f;
 
-        Drawable logoDrawable = getContext().getDrawable(ru.mogcommunity.rbr_project.R.drawable.ic_launcher_foreground);
+        Drawable logoDrawable = getContext().getDrawable(ru.mogcommunity.rbrproject.R.drawable.ic_launcher_foreground);
         if (logoDrawable != null) {
             logoDrawable.setBounds((int) xOffset, (int) yOffset, (int) (xOffset + size), (int) (yOffset + size));
             logoDrawable.setAlpha((int) (progress * 255));

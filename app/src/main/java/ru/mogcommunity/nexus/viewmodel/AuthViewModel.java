@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.viewmodel;
+package ru.mogcommunity.rbrproject.viewmodel;
 
 import android.app.Application;
 
@@ -13,8 +13,8 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 
-import ru.mogcommunity.rbr_project.data.PreferenceManager;
-import ru.mogcommunity.rbr_project.data.remote.FirebaseManager;
+import ru.mogcommunity.rbrproject.data.PreferenceManager;
+import ru.mogcommunity.rbrproject.data.remote.FirebaseManager;
 
 import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;

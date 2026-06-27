@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui.helper;
+package ru.mogcommunity.rbrproject.ui.helper;
 
 public class MarkdownStripper {
     public static String strip(String text) {

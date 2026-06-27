@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.data.remote;
+package ru.mogcommunity.rbrproject.data.remote;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -26,7 +26,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class GeminiClient {
-    private static final String BASE_URL = ru.mogcommunity.rbr_project.BuildConfig.GEMINI_BASE_URL;
+    private static final String BASE_URL = ru.mogcommunity.rbrproject.BuildConfig.GEMINI_BASE_URL;
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     private final OkHttpClient client;
@@ -76,7 +76,7 @@ public class GeminiClient {
 
         okhttp3.OkHttpClient clientToUse = this.client;
         
-        ru.mogcommunity.rbr_project.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
+        ru.mogcommunity.rbrproject.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
             byte[] imageBytes = null;
             String mimeType = "image/jpeg";
 

@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project;
+package ru.mogcommunity.rbrproject;
 
 import android.os.Bundle;
 
@@ -6,11 +6,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.color.DynamicColors;
-import ru.mogcommunity.rbr_project.data.PreferenceManager;
-import ru.mogcommunity.rbr_project.databinding.ActivityMainBinding;
-import ru.mogcommunity.rbr_project.ui.GalleryFragment;
-import ru.mogcommunity.rbr_project.ui.ProjectsFragment;
-import ru.mogcommunity.rbr_project.ui.SettingsFragment;
+import ru.mogcommunity.rbrproject.data.PreferenceManager;
+import ru.mogcommunity.rbrproject.databinding.ActivityMainBinding;
+import ru.mogcommunity.rbrproject.ui.GalleryFragment;
+import ru.mogcommunity.rbrproject.ui.ProjectsFragment;
+import ru.mogcommunity.rbrproject.ui.SettingsFragment;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void attachBaseContext(android.content.Context newBase) {
-        float fontScale = ru.mogcommunity.rbr_project.data.PreferenceManager.getInstance(newBase).getFontScale();
+        float fontScale = ru.mogcommunity.rbrproject.data.PreferenceManager.getInstance(newBase).getFontScale();
         android.content.res.Configuration config = new android.content.res.Configuration(newBase.getResources().getConfiguration());
         config.fontScale = fontScale;
         android.content.Context context = newBase.createConfigurationContext(config);

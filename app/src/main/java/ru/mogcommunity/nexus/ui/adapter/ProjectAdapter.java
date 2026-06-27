@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui.adapter;
+package ru.mogcommunity.rbrproject.ui.adapter;
 
 import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
@@ -7,9 +7,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import ru.mogcommunity.rbr_project.R;
-import ru.mogcommunity.rbr_project.data.model.Project;
-import ru.mogcommunity.rbr_project.databinding.ItemProjectHorizontalBinding;
+import ru.mogcommunity.rbrproject.R;
+import ru.mogcommunity.rbrproject.data.model.Project;
+import ru.mogcommunity.rbrproject.databinding.ItemProjectHorizontalBinding;
 
 import java.util.List;
 

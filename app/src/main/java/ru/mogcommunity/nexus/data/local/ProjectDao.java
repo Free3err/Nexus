@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.data.local;
+package ru.mogcommunity.rbrproject.data.local;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
@@ -8,7 +8,7 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
-import ru.mogcommunity.rbr_project.data.model.Project;
+import ru.mogcommunity.rbrproject.data.model.Project;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.data.model;
+package ru.mogcommunity.rbrproject.data.model;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;

@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui;
+package ru.mogcommunity.rbrproject.ui;
 
 import android.app.Dialog;
 import android.net.Uri;
@@ -17,15 +17,15 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
-import ru.mogcommunity.rbr_project.R;
-import ru.mogcommunity.rbr_project.data.model.Project;
-import ru.mogcommunity.rbr_project.data.model.Snapshot;
-import ru.mogcommunity.rbr_project.databinding.FragmentGalleryBinding;
-import ru.mogcommunity.rbr_project.ui.adapter.GalleryProjectAdapter;
-import ru.mogcommunity.rbr_project.ui.adapter.GalleryProjectAdapter.GalleryProject;
-import ru.mogcommunity.rbr_project.ui.adapter.ProjectPhotoAdapter;
-import ru.mogcommunity.rbr_project.ui.helper.SpaceItemDecoration;
-import ru.mogcommunity.rbr_project.viewmodel.ProjectViewModel;
+import ru.mogcommunity.rbrproject.R;
+import ru.mogcommunity.rbrproject.data.model.Project;
+import ru.mogcommunity.rbrproject.data.model.Snapshot;
+import ru.mogcommunity.rbrproject.databinding.FragmentGalleryBinding;
+import ru.mogcommunity.rbrproject.ui.adapter.GalleryProjectAdapter;
+import ru.mogcommunity.rbrproject.ui.adapter.GalleryProjectAdapter.GalleryProject;
+import ru.mogcommunity.rbrproject.ui.adapter.ProjectPhotoAdapter;
+import ru.mogcommunity.rbrproject.ui.helper.SpaceItemDecoration;
+import ru.mogcommunity.rbrproject.viewmodel.ProjectViewModel;
 
 import java.util.ArrayList;
 import java.util.Collections;

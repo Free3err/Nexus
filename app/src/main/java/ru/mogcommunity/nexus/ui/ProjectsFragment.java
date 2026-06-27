@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui;
+package ru.mogcommunity.rbrproject.ui;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
@@ -14,17 +14,17 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import ru.mogcommunity.rbr_project.R;
-import ru.mogcommunity.rbr_project.data.model.Project;
-import ru.mogcommunity.rbr_project.data.model.Snapshot;
-import ru.mogcommunity.rbr_project.databinding.FragmentProjectsBinding;
-import ru.mogcommunity.rbr_project.ui.adapter.GalleryAdapter;
-import ru.mogcommunity.rbr_project.ui.adapter.ProjectAdapter;
-import ru.mogcommunity.rbr_project.ui.adapter.SnapshotAdapter;
-import ru.mogcommunity.rbr_project.ui.adapter.ChatMessageAdapter;
-import ru.mogcommunity.rbr_project.ui.adapter.ProjectPhotoAdapter;
-import ru.mogcommunity.rbr_project.ui.helper.SpaceItemDecoration;
-import ru.mogcommunity.rbr_project.viewmodel.ProjectViewModel;
+import ru.mogcommunity.rbrproject.R;
+import ru.mogcommunity.rbrproject.data.model.Project;
+import ru.mogcommunity.rbrproject.data.model.Snapshot;
+import ru.mogcommunity.rbrproject.databinding.FragmentProjectsBinding;
+import ru.mogcommunity.rbrproject.ui.adapter.GalleryAdapter;
+import ru.mogcommunity.rbrproject.ui.adapter.ProjectAdapter;
+import ru.mogcommunity.rbrproject.ui.adapter.SnapshotAdapter;
+import ru.mogcommunity.rbrproject.ui.adapter.ChatMessageAdapter;
+import ru.mogcommunity.rbrproject.ui.adapter.ProjectPhotoAdapter;
+import ru.mogcommunity.rbrproject.ui.helper.SpaceItemDecoration;
+import ru.mogcommunity.rbrproject.viewmodel.ProjectViewModel;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
@@ -46,7 +46,7 @@ public class ProjectsFragment extends Fragment {
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
     private List<Project> allProjectsList = new ArrayList<>();
     private ChatMessageAdapter chatMessageAdapter;
-    private androidx.lifecycle.LiveData<List<ru.mogcommunity.rbr_project.data.model.ChatMessage>> currentChatLiveData;
+    private androidx.lifecycle.LiveData<List<ru.mogcommunity.rbrproject.data.model.ChatMessage>> currentChatLiveData;
     private androidx.lifecycle.LiveData<List<Snapshot>> currentSnapshotsLiveData;
     private String projectSearchQuery = "";
     private ViewTreeObserver.OnGlobalLayoutListener keyboardLayoutListener;
@@ -260,8 +260,8 @@ public class ProjectsFragment extends Fragment {
             int keyboardHeight = screenHeight - visibleRect.bottom;
             boolean isKeyboardVisible = keyboardHeight > screenHeight * 0.15f;
 
-            if (getActivity() instanceof ru.mogcommunity.rbr_project.MainActivity) {
-                ((ru.mogcommunity.rbr_project.MainActivity) getActivity())
+            if (getActivity() instanceof ru.mogcommunity.rbrproject.MainActivity) {
+                ((ru.mogcommunity.rbrproject.MainActivity) getActivity())
                         .setBottomNavigationVisibility(isKeyboardVisible ? View.GONE : View.VISIBLE);
             }
 
@@ -304,7 +304,7 @@ public class ProjectsFragment extends Fragment {
                 String lastId = viewModel.getActiveProjectId();
                 if (lastId == null || lastId.isEmpty()) {
                     if (getContext() != null) {
-                        lastId = ru.mogcommunity.rbr_project.data.PreferenceManager.getInstance(getContext()).getLastProjectId();
+                        lastId = ru.mogcommunity.rbrproject.data.PreferenceManager.getInstance(getContext()).getLastProjectId();
                     } else {
                         lastId = "";
                     }
@@ -384,7 +384,7 @@ public class ProjectsFragment extends Fragment {
         selectedProject = project;
         viewModel.setActiveProjectId(project.getId());
         if (getContext() != null) {
-            ru.mogcommunity.rbr_project.data.PreferenceManager.getInstance(getContext()).setLastProjectId(project.getId());
+            ru.mogcommunity.rbrproject.data.PreferenceManager.getInstance(getContext()).setLastProjectId(project.getId());
         }
         projectAdapter.setSelectedProject(project);
 
@@ -454,8 +454,8 @@ public class ProjectsFragment extends Fragment {
         if (binding != null && keyboardLayoutListener != null) {
             binding.getRoot().getViewTreeObserver().removeOnGlobalLayoutListener(keyboardLayoutListener);
         }
-        if (getActivity() instanceof ru.mogcommunity.rbr_project.MainActivity) {
-            ((ru.mogcommunity.rbr_project.MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
+        if (getActivity() instanceof ru.mogcommunity.rbrproject.MainActivity) {
+            ((ru.mogcommunity.rbrproject.MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
         }
         super.onDestroyView();
         binding = null;

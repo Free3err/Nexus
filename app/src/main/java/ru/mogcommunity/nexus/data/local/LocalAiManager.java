@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.data.local;
+package ru.mogcommunity.rbrproject.data.local;
 
 import android.content.Context;
 import android.os.Handler;

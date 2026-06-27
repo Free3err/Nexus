@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui;
+package ru.mogcommunity.rbrproject.ui;
 
 import android.content.res.ColorStateList;
 import android.net.Uri;
@@ -13,9 +13,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
-import ru.mogcommunity.rbr_project.R;
-import ru.mogcommunity.rbr_project.databinding.BottomSheetAddSnapshotBinding;
-import ru.mogcommunity.rbr_project.viewmodel.ProjectViewModel;
+import ru.mogcommunity.rbrproject.R;
+import ru.mogcommunity.rbrproject.databinding.BottomSheetAddSnapshotBinding;
+import ru.mogcommunity.rbrproject.viewmodel.ProjectViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import java.util.List;
@@ -168,7 +168,7 @@ public class AddSnapshotBottomSheet extends BottomSheetDialogFragment {
 
     @Override
     public int getTheme() {
-        if (getContext() != null && ru.mogcommunity.rbr_project.data.PreferenceManager.getInstance(getContext()).isDynamicColorsEnabled()) {
+        if (getContext() != null && ru.mogcommunity.rbrproject.data.PreferenceManager.getInstance(getContext()).isDynamicColorsEnabled()) {
             return R.style.DynamicBottomSheetDialogTheme;
         } else {
             return R.style.CustomBottomSheetDialogTheme;
@@ -179,7 +179,7 @@ public class AddSnapshotBottomSheet extends BottomSheetDialogFragment {
     @Override
     public android.app.Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         android.content.Context context = requireContext();
-        if (ru.mogcommunity.rbr_project.data.PreferenceManager.getInstance(context).isDynamicColorsEnabled()) {
+        if (ru.mogcommunity.rbrproject.data.PreferenceManager.getInstance(context).isDynamicColorsEnabled()) {
             context = com.google.android.material.color.DynamicColors.wrapContextIfAvailable(context, getTheme());
         }
         return new com.google.android.material.bottomsheet.BottomSheetDialog(context, getTheme());

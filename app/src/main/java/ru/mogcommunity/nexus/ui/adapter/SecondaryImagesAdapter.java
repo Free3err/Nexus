@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui.adapter;
+package ru.mogcommunity.rbrproject.ui.adapter;
 
 import android.net.Uri;
 import android.view.LayoutInflater;
@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import ru.mogcommunity.rbr_project.databinding.ItemSecondaryImageBinding;
+import ru.mogcommunity.rbrproject.databinding.ItemSecondaryImageBinding;
 
 import java.util.List;
 

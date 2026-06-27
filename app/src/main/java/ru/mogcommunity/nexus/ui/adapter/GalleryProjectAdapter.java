@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui.adapter;
+package ru.mogcommunity.rbrproject.ui.adapter;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -7,9 +7,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import ru.mogcommunity.rbr_project.data.model.Project;
-import ru.mogcommunity.rbr_project.data.model.Snapshot;
-import ru.mogcommunity.rbr_project.databinding.ItemGalleryProjectBinding;
+import ru.mogcommunity.rbrproject.data.model.Project;
+import ru.mogcommunity.rbrproject.data.model.Snapshot;
+import ru.mogcommunity.rbrproject.databinding.ItemGalleryProjectBinding;
 
 import java.util.List;
 

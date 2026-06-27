@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="?android:attr/windowBackground">
 
-    <ru.mogcommunity.rbr_project.ui.view.GitBranchLogoView
+    <ru.mogcommunity.rbrproject.ui.view.GitBranchLogoView
         android:id="@+id/splash_logo"
         android:layout_width="160dp"
         android:layout_height="160dp"

@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.viewmodel;
+package ru.mogcommunity.rbrproject.viewmodel;
 
 import android.app.Application;
 import android.net.Uri;
@@ -9,11 +9,11 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import ru.mogcommunity.rbr_project.data.PreferenceManager;
-import ru.mogcommunity.rbr_project.data.model.Project;
-import ru.mogcommunity.rbr_project.data.model.Snapshot;
-import ru.mogcommunity.rbr_project.data.remote.GeminiClient;
-import ru.mogcommunity.rbr_project.data.repository.ProjectRepository;
+import ru.mogcommunity.rbrproject.data.PreferenceManager;
+import ru.mogcommunity.rbrproject.data.model.Project;
+import ru.mogcommunity.rbrproject.data.model.Snapshot;
+import ru.mogcommunity.rbrproject.data.remote.GeminiClient;
+import ru.mogcommunity.rbrproject.data.repository.ProjectRepository;
 
 import java.util.List;
 import javax.inject.Inject;
@@ -83,13 +83,13 @@ public class ProjectViewModel extends AndroidViewModel {
         chatError.setValue(null);
     }
 
-    public LiveData<List<ru.mogcommunity.rbr_project.data.model.ChatMessage>> getChatMessagesForProject(String projectId) {
+    public LiveData<List<ru.mogcommunity.rbrproject.data.model.ChatMessage>> getChatMessagesForProject(String projectId) {
         return repository.getChatMessagesForProject(projectId);
     }
 
     public void addProject(String id, String name, String description) {
         Project project = new Project(id, name, description, System.currentTimeMillis());
-        Log.d("RBR_ProjectViewModel", "Adding project: id=" + id + ", name=" + name);
+        Log.d("rbrprojectViewModel", "Adding project: id=" + id + ", name=" + name);
         repository.insertProject(project);
     }
 
@@ -121,7 +121,7 @@ public class ProjectViewModel extends AndroidViewModel {
         isAiLoading.setValue(true);
         aiError.setValue(null);
 
-        ru.mogcommunity.rbr_project.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
+        ru.mogcommunity.rbrproject.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
             Project project = repository.getProjectByIdSync(snapshot.getProjectId());
             String finalProjectDesc = projectDescription;
             if (project != null && project.getConfigEnv() != null && !project.getConfigEnv().trim().isEmpty()) {
@@ -186,7 +186,7 @@ public class ProjectViewModel extends AndroidViewModel {
                 geminiClient.analyzeError(apiKey, prompt, snapshot.getImageUrl(), getApplication(), new GeminiClient.GeminiCallback() {
                     @Override
                     public void onSuccess(String plan) {
-                        snapshot.setAiAnalysisPlan(ru.mogcommunity.rbr_project.ui.helper.MarkdownStripper.strip(plan));
+                        snapshot.setAiAnalysisPlan(ru.mogcommunity.rbrproject.ui.helper.MarkdownStripper.strip(plan));
                         repository.updateSnapshot(snapshot);
                         isAiLoading.postValue(false);
                     }
@@ -198,8 +198,8 @@ public class ProjectViewModel extends AndroidViewModel {
                     }
                 });
             } else {
-                ru.mogcommunity.rbr_project.data.local.LocalAiManager localAiManager = 
-                        ru.mogcommunity.rbr_project.data.local.LocalAiManager.getInstance(getApplication());
+                ru.mogcommunity.rbrproject.data.local.LocalAiManager localAiManager = 
+                        ru.mogcommunity.rbrproject.data.local.LocalAiManager.getInstance(getApplication());
                 
                 if (localAiManager.isModelAvailable(selectedModel)) {
                     String logContent = snapshot.getErrorLog() != null ? snapshot.getErrorLog() : "Лог ошибки отсутствует";
@@ -224,10 +224,10 @@ public class ProjectViewModel extends AndroidViewModel {
                                 "План действий:";
                     }
                     
-                    localAiManager.runInference(selectedModel, prompt, new ru.mogcommunity.rbr_project.data.local.LocalAiManager.InferenceCallback() {
+                    localAiManager.runInference(selectedModel, prompt, new ru.mogcommunity.rbrproject.data.local.LocalAiManager.InferenceCallback() {
                         @Override
                         public void onSuccess(String output) {
-                            snapshot.setAiAnalysisPlan(ru.mogcommunity.rbr_project.ui.helper.MarkdownStripper.strip(output));
+                            snapshot.setAiAnalysisPlan(ru.mogcommunity.rbrproject.ui.helper.MarkdownStripper.strip(output));
                             repository.updateSnapshot(snapshot);
                             isAiLoading.postValue(false);
                         }
@@ -281,7 +281,7 @@ public class ProjectViewModel extends AndroidViewModel {
     }
 
     public boolean isModelDownloaded(String modelName) {
-        return ru.mogcommunity.rbr_project.data.local.LocalAiManager.getInstance(getApplication()).isModelAvailable(modelName);
+        return ru.mogcommunity.rbrproject.data.local.LocalAiManager.getInstance(getApplication()).isModelAvailable(modelName);
     }
 
     public void setModelDownloaded(String modelName, boolean downloaded) {
@@ -293,13 +293,13 @@ public class ProjectViewModel extends AndroidViewModel {
         
         String cleanText = text.trim();
         String messageId = java.util.UUID.randomUUID().toString();
-        ru.mogcommunity.rbr_project.data.model.ChatMessage userMsg = new ru.mogcommunity.rbr_project.data.model.ChatMessage(messageId, projectId, "user", cleanText, System.currentTimeMillis());
+        ru.mogcommunity.rbrproject.data.model.ChatMessage userMsg = new ru.mogcommunity.rbrproject.data.model.ChatMessage(messageId, projectId, "user", cleanText, System.currentTimeMillis());
         repository.insertChatMessage(userMsg);
         
         isChatLoading.setValue(true);
         chatError.setValue(null);
         
-        ru.mogcommunity.rbr_project.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
+        ru.mogcommunity.rbrproject.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
             Project project = repository.getProjectByIdSync(projectId);
             if (project == null) {
                 chatError.postValue("Проект не найден");
@@ -308,7 +308,7 @@ public class ProjectViewModel extends AndroidViewModel {
             }
             
             List<Snapshot> snapshots = repository.getSnapshotsForProjectSync(projectId);
-            List<ru.mogcommunity.rbr_project.data.model.ChatMessage> history = repository.getChatMessagesForProjectSync(projectId);
+            List<ru.mogcommunity.rbrproject.data.model.ChatMessage> history = repository.getChatMessagesForProjectSync(projectId);
 
             StringBuilder contextBuilder = new StringBuilder();
             contextBuilder.append("Инженерный контекст проекта:\n");
@@ -363,7 +363,7 @@ public class ProjectViewModel extends AndroidViewModel {
                 }
             }
 
-            List<ru.mogcommunity.rbr_project.data.model.ChatMessage> activeHistory = new java.util.ArrayList<>();
+            List<ru.mogcommunity.rbrproject.data.model.ChatMessage> activeHistory = new java.util.ArrayList<>();
             if (history != null) {
                 for (int i = lastSummarizedIndex + 1; i < history.size(); i++) {
                     activeHistory.add(history.get(i));
@@ -377,7 +377,7 @@ public class ProjectViewModel extends AndroidViewModel {
             }
             if (!activeHistory.isEmpty()) {
                 historyPrompt.append("Активная часть диалога:\n");
-                for (ru.mogcommunity.rbr_project.data.model.ChatMessage msg : activeHistory) {
+                for (ru.mogcommunity.rbrproject.data.model.ChatMessage msg : activeHistory) {
                     if (msg.getId().equals(messageId)) continue;
                     if ("user".equals(msg.getSender())) {
                         historyPrompt.append("Пользователь: ").append(msg.getText()).append("\n");
@@ -426,11 +426,11 @@ public class ProjectViewModel extends AndroidViewModel {
                 geminiClient.analyzeError(apiKey, prompt, null, null, new GeminiClient.GeminiCallback() {
                     @Override
                     public void onSuccess(String plan) {
-                        ru.mogcommunity.rbr_project.data.model.ChatMessage aiMsg = new ru.mogcommunity.rbr_project.data.model.ChatMessage(
+                        ru.mogcommunity.rbrproject.data.model.ChatMessage aiMsg = new ru.mogcommunity.rbrproject.data.model.ChatMessage(
                             java.util.UUID.randomUUID().toString(),
                             projectId,
                             "ai",
-                            ru.mogcommunity.rbr_project.ui.helper.MarkdownStripper.strip(plan),
+                            ru.mogcommunity.rbrproject.ui.helper.MarkdownStripper.strip(plan),
                             System.currentTimeMillis()
                         );
                         repository.insertChatMessage(aiMsg);
@@ -444,18 +444,18 @@ public class ProjectViewModel extends AndroidViewModel {
                     }
                 });
             } else {
-                ru.mogcommunity.rbr_project.data.local.LocalAiManager localAiManager = 
-                        ru.mogcommunity.rbr_project.data.local.LocalAiManager.getInstance(getApplication());
+                ru.mogcommunity.rbrproject.data.local.LocalAiManager localAiManager = 
+                        ru.mogcommunity.rbrproject.data.local.LocalAiManager.getInstance(getApplication());
                 
                 if (localAiManager.isModelAvailable(selectedModel)) {
-                    localAiManager.runInference(selectedModel, prompt, new ru.mogcommunity.rbr_project.data.local.LocalAiManager.InferenceCallback() {
+                    localAiManager.runInference(selectedModel, prompt, new ru.mogcommunity.rbrproject.data.local.LocalAiManager.InferenceCallback() {
                         @Override
                         public void onSuccess(String output) {
-                            ru.mogcommunity.rbr_project.data.model.ChatMessage aiMsg = new ru.mogcommunity.rbr_project.data.model.ChatMessage(
+                            ru.mogcommunity.rbrproject.data.model.ChatMessage aiMsg = new ru.mogcommunity.rbrproject.data.model.ChatMessage(
                                 java.util.UUID.randomUUID().toString(),
                                 projectId,
                                 "ai",
-                                ru.mogcommunity.rbr_project.ui.helper.MarkdownStripper.strip(output),
+                                ru.mogcommunity.rbrproject.ui.helper.MarkdownStripper.strip(output),
                                 System.currentTimeMillis()
                             );
                             repository.insertChatMessage(aiMsg);
@@ -498,15 +498,15 @@ public class ProjectViewModel extends AndroidViewModel {
         this.activeProjectId = activeProjectId;
     }
 
-    private void triggerBackgroundChatSummarization(Project project, int lastSummarizedIndex, List<ru.mogcommunity.rbr_project.data.model.ChatMessage> history) {
-        ru.mogcommunity.rbr_project.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
+    private void triggerBackgroundChatSummarization(Project project, int lastSummarizedIndex, List<ru.mogcommunity.rbrproject.data.model.ChatMessage> history) {
+        ru.mogcommunity.rbrproject.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
             int newCutoff = history.size() - 3;
             if (newCutoff <= lastSummarizedIndex + 1) {
                 activeSummarizations.remove(project.getId());
                 return;
             }
 
-            List<ru.mogcommunity.rbr_project.data.model.ChatMessage> newBatchToSummarize = new java.util.ArrayList<>();
+            List<ru.mogcommunity.rbrproject.data.model.ChatMessage> newBatchToSummarize = new java.util.ArrayList<>();
             for (int i = lastSummarizedIndex + 1; i < newCutoff; i++) {
                 newBatchToSummarize.add(history.get(i));
             }
@@ -516,7 +516,7 @@ public class ProjectViewModel extends AndroidViewModel {
                 return;
             }
 
-            ru.mogcommunity.rbr_project.data.model.ChatMessage newLastSumMsg = history.get(newCutoff - 1);
+            ru.mogcommunity.rbrproject.data.model.ChatMessage newLastSumMsg = history.get(newCutoff - 1);
 
             StringBuilder sumPrompt = new StringBuilder();
             sumPrompt.append("Ты — ИИ-ассистент, помогающий сжать историю диалога. Твоя задача — составить краткую выжимку (2-3 предложения) на русском языке.\n");
@@ -524,7 +524,7 @@ public class ProjectViewModel extends AndroidViewModel {
                 sumPrompt.append("Предыдущая сводка диалога:\n").append(project.getChatSummary()).append("\n\n");
             }
             sumPrompt.append("Новые сообщения для добавления в сводку:\n");
-            for (ru.mogcommunity.rbr_project.data.model.ChatMessage m : newBatchToSummarize) {
+            for (ru.mogcommunity.rbrproject.data.model.ChatMessage m : newBatchToSummarize) {
                 sumPrompt.append(m.getSender().equals("user") ? "Пользователь: " : "ИИ-ассистент: ").append(m.getText()).append("\n");
             }
             sumPrompt.append("\nНапиши обновленную единую краткую сводку диалога на русском языке (2-3 предложения), объединяющую предыдущую сводку и новые сообщения. Ответ должен быть простым текстом без Markdown.");
@@ -540,8 +540,8 @@ public class ProjectViewModel extends AndroidViewModel {
                 geminiClient.analyzeError(apiKey, sumPrompt.toString(), null, null, new GeminiClient.GeminiCallback() {
                     @Override
                     public void onSuccess(String plan) {
-                        ru.mogcommunity.rbr_project.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
-                            project.setChatSummary(ru.mogcommunity.rbr_project.ui.helper.MarkdownStripper.strip(plan));
+                        ru.mogcommunity.rbrproject.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
+                            project.setChatSummary(ru.mogcommunity.rbrproject.ui.helper.MarkdownStripper.strip(plan));
                             project.setLastSummarizedMessageId(newLastSumMsg.getId());
                             repository.updateProject(project);
                         });
@@ -555,15 +555,15 @@ public class ProjectViewModel extends AndroidViewModel {
                     }
                 });
             } else {
-                ru.mogcommunity.rbr_project.data.local.LocalAiManager localAiManager = 
-                        ru.mogcommunity.rbr_project.data.local.LocalAiManager.getInstance(getApplication());
+                ru.mogcommunity.rbrproject.data.local.LocalAiManager localAiManager = 
+                        ru.mogcommunity.rbrproject.data.local.LocalAiManager.getInstance(getApplication());
                 
                 if (localAiManager.isModelAvailable(selectedModel)) {
-                    localAiManager.runInference(selectedModel, sumPrompt.toString(), new ru.mogcommunity.rbr_project.data.local.LocalAiManager.InferenceCallback() {
+                    localAiManager.runInference(selectedModel, sumPrompt.toString(), new ru.mogcommunity.rbrproject.data.local.LocalAiManager.InferenceCallback() {
                         @Override
                         public void onSuccess(String output) {
-                            ru.mogcommunity.rbr_project.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
-                                project.setChatSummary(ru.mogcommunity.rbr_project.ui.helper.MarkdownStripper.strip(output));
+                            ru.mogcommunity.rbrproject.data.local.AppDatabase.databaseWriteExecutor.execute(() -> {
+                                project.setChatSummary(ru.mogcommunity.rbrproject.ui.helper.MarkdownStripper.strip(output));
                                 project.setLastSummarizedMessageId(newLastSumMsg.getId());
                                 repository.updateProject(project);
                             });

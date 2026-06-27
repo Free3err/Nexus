@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project;
+package ru.mogcommunity.rbrproject;
 
 import android.app.Application;
 import dagger.hilt.android.HiltAndroidApp;

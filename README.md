@@ -137,7 +137,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 ```
 
 ### Структура тестов
-Тесты расположены в директории `app/src/test/java/ru/mogcommunity/rbr_project/`:
+Тесты расположены в директории `app/src/test/java/ru/mogcommunity/rbrproject/`:
 - `data/model/ProjectTest.java` - проверка логики инициализации и обновления свойств проектов.
 - `data/model/SnapshotTest.java` - тестирование состояния снимков и валидации данных.
 - `data/model/ChatMessageTest.java` - проверка отправки и статусов сообщений в чате.

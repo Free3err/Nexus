@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.data.local;
+package ru.mogcommunity.rbrproject.data.local;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
@@ -6,7 +6,7 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
-import ru.mogcommunity.rbr_project.data.model.ChatMessage;
+import ru.mogcommunity.rbrproject.data.model.ChatMessage;
 
 import java.util.List;
 

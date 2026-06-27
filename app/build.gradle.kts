@@ -5,15 +5,15 @@ plugins {
 }
 
 android {
-    namespace = "ru.mogcommunity.rbr_project"
-    compileSdk = 34
+    namespace = "ru.mogcommunity.rbrproject"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "ru.mogcommunity.rbr_project"
+        applicationId = "ru.mogcommunity.rbrproject"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 35
+        versionCode = 2
+        versionName = "2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

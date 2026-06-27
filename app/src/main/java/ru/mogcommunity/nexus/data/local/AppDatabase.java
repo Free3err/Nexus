@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.data.local;
+package ru.mogcommunity.rbrproject.data.local;
 
 import android.content.Context;
 
@@ -6,13 +6,13 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import ru.mogcommunity.rbr_project.data.model.Project;
-import ru.mogcommunity.rbr_project.data.model.Snapshot;
+import ru.mogcommunity.rbrproject.data.model.Project;
+import ru.mogcommunity.rbrproject.data.model.Snapshot;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Project.class, Snapshot.class, ru.mogcommunity.rbr_project.data.model.ChatMessage.class}, version = 5, exportSchema = false)
+@Database(entities = {Project.class, Snapshot.class, ru.mogcommunity.rbrproject.data.model.ChatMessage.class}, version = 5, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract ProjectDao projectDao();
     public abstract SnapshotDao snapshotDao();

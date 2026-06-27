@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui.adapter;
+package ru.mogcommunity.rbrproject.ui.adapter;
 
 import android.content.res.ColorStateList;
 import android.net.Uri;
@@ -10,9 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import ru.mogcommunity.rbr_project.R;
-import ru.mogcommunity.rbr_project.data.model.Snapshot;
-import ru.mogcommunity.rbr_project.databinding.ItemSnapshotTimelineBinding;
+import ru.mogcommunity.rbrproject.R;
+import ru.mogcommunity.rbrproject.data.model.Snapshot;
+import ru.mogcommunity.rbrproject.databinding.ItemSnapshotTimelineBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -192,8 +192,8 @@ public class SnapshotAdapter extends RecyclerView.Adapter<SnapshotAdapter.Snapsh
                     binding.layoutAiResponse.setVisibility(View.VISIBLE);
                     binding.textAiPlan.setText(aiPlan);
 
-                    ru.mogcommunity.rbr_project.data.PreferenceManager preferenceManager =
-                            ru.mogcommunity.rbr_project.data.PreferenceManager.getInstance(itemView.getContext());
+                    ru.mogcommunity.rbrproject.data.PreferenceManager preferenceManager =
+                            ru.mogcommunity.rbrproject.data.PreferenceManager.getInstance(itemView.getContext());
                     String selectedModel = preferenceManager.getSelectedModel();
                     String modelLabel = "Gemini 3.1 Flash Lite";
                     if ("qwen_1.5b".equals(selectedModel)) {

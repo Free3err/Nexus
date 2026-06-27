@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.di;
+package ru.mogcommunity.rbrproject.di;
 
 import android.content.Context;
 import dagger.Module;
@@ -7,13 +7,13 @@ import dagger.hilt.InstallIn;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import dagger.hilt.components.SingletonComponent;
 import javax.inject.Singleton;
-import ru.mogcommunity.rbr_project.data.PreferenceManager;
-import ru.mogcommunity.rbr_project.data.local.AppDatabase;
-import ru.mogcommunity.rbr_project.data.local.ProjectDao;
-import ru.mogcommunity.rbr_project.data.local.SnapshotDao;
-import ru.mogcommunity.rbr_project.data.local.ChatMessageDao;
-import ru.mogcommunity.rbr_project.data.remote.FirebaseManager;
-import ru.mogcommunity.rbr_project.data.remote.GeminiClient;
+import ru.mogcommunity.rbrproject.data.PreferenceManager;
+import ru.mogcommunity.rbrproject.data.local.AppDatabase;
+import ru.mogcommunity.rbrproject.data.local.ProjectDao;
+import ru.mogcommunity.rbrproject.data.local.SnapshotDao;
+import ru.mogcommunity.rbrproject.data.local.ChatMessageDao;
+import ru.mogcommunity.rbrproject.data.remote.FirebaseManager;
+import ru.mogcommunity.rbrproject.data.remote.GeminiClient;
 
 @Module
 @InstallIn(SingletonComponent.class)

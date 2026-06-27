@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui.helper;
+package ru.mogcommunity.rbrproject.ui.helper;
 
 import android.graphics.Rect;
 import android.view.View;

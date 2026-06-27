@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui.adapter;
+package ru.mogcommunity.rbrproject.ui.adapter;
 
 import android.net.Uri;
 import android.view.LayoutInflater;
@@ -8,9 +8,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import ru.mogcommunity.rbr_project.R;
-import ru.mogcommunity.rbr_project.data.model.Snapshot;
-import ru.mogcommunity.rbr_project.databinding.ItemProjectPhotoBinding;
+import ru.mogcommunity.rbrproject.R;
+import ru.mogcommunity.rbrproject.data.model.Snapshot;
+import ru.mogcommunity.rbrproject.databinding.ItemProjectPhotoBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

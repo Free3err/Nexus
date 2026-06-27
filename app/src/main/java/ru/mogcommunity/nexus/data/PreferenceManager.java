@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.data;
+package ru.mogcommunity.rbrproject.data;
 
 import android.content.Context;
 import android.content.SharedPreferences;

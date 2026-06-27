@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui;
+package ru.mogcommunity.rbrproject.ui;
 
 import android.app.DownloadManager;
 import android.content.Context;
@@ -26,12 +26,12 @@ import com.google.firebase.auth.FirebaseUser;
 
 import java.io.File;
 
-import ru.mogcommunity.rbr_project.R;
-import ru.mogcommunity.rbr_project.data.PreferenceManager;
-import ru.mogcommunity.rbr_project.data.repository.ProjectRepository;
-import ru.mogcommunity.rbr_project.databinding.FragmentSettingsBinding;
-import ru.mogcommunity.rbr_project.viewmodel.AuthViewModel;
-import ru.mogcommunity.rbr_project.viewmodel.ProjectViewModel;
+import ru.mogcommunity.rbrproject.R;
+import ru.mogcommunity.rbrproject.data.PreferenceManager;
+import ru.mogcommunity.rbrproject.data.repository.ProjectRepository;
+import ru.mogcommunity.rbrproject.databinding.FragmentSettingsBinding;
+import ru.mogcommunity.rbrproject.viewmodel.AuthViewModel;
+import ru.mogcommunity.rbrproject.viewmodel.ProjectViewModel;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -292,7 +292,7 @@ public class SettingsFragment extends Fragment {
     }
 
     private void deleteModelFile(String modelName) {
-        ru.mogcommunity.rbr_project.data.local.LocalAiManager localAi = ru.mogcommunity.rbr_project.data.local.LocalAiManager.getInstance(getContext());
+        ru.mogcommunity.rbrproject.data.local.LocalAiManager localAi = ru.mogcommunity.rbrproject.data.local.LocalAiManager.getInstance(getContext());
         localAi.close();
         File file = localAi.getModelFile(modelName);
         if (file != null && file.exists()) {

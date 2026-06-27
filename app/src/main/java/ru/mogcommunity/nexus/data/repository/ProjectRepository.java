@@ -1,17 +1,17 @@
-package ru.mogcommunity.rbr_project.data.repository;
+package ru.mogcommunity.rbrproject.data.repository;
 
 import android.net.Uri;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
-import ru.mogcommunity.rbr_project.data.PreferenceManager;
-import ru.mogcommunity.rbr_project.data.local.AppDatabase;
-import ru.mogcommunity.rbr_project.data.local.ProjectDao;
-import ru.mogcommunity.rbr_project.data.local.SnapshotDao;
-import ru.mogcommunity.rbr_project.data.model.Project;
-import ru.mogcommunity.rbr_project.data.model.Snapshot;
-import ru.mogcommunity.rbr_project.data.remote.FirebaseManager;
+import ru.mogcommunity.rbrproject.data.PreferenceManager;
+import ru.mogcommunity.rbrproject.data.local.AppDatabase;
+import ru.mogcommunity.rbrproject.data.local.ProjectDao;
+import ru.mogcommunity.rbrproject.data.local.SnapshotDao;
+import ru.mogcommunity.rbrproject.data.model.Project;
+import ru.mogcommunity.rbrproject.data.model.Snapshot;
+import ru.mogcommunity.rbrproject.data.remote.FirebaseManager;
 
 import java.util.List;
 import javax.inject.Inject;
@@ -21,7 +21,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext;
 public class ProjectRepository {
     private final ProjectDao projectDao;
     private final SnapshotDao snapshotDao;
-    private final ru.mogcommunity.rbr_project.data.local.ChatMessageDao chatMessageDao;
+    private final ru.mogcommunity.rbrproject.data.local.ChatMessageDao chatMessageDao;
     private final FirebaseManager firebaseManager;
     private final PreferenceManager preferenceManager;
     private final Context context;
@@ -30,7 +30,7 @@ public class ProjectRepository {
     public ProjectRepository(
             ProjectDao projectDao,
             SnapshotDao snapshotDao,
-            ru.mogcommunity.rbr_project.data.local.ChatMessageDao chatMessageDao,
+            ru.mogcommunity.rbrproject.data.local.ChatMessageDao chatMessageDao,
             FirebaseManager firebaseManager,
             PreferenceManager preferenceManager,
             @ApplicationContext Context context
@@ -63,15 +63,15 @@ public class ProjectRepository {
         return snapshotDao.getLastSuccessfulSnapshot(projectId);
     }
 
-    public LiveData<List<ru.mogcommunity.rbr_project.data.model.ChatMessage>> getChatMessagesForProject(String projectId) {
+    public LiveData<List<ru.mogcommunity.rbrproject.data.model.ChatMessage>> getChatMessagesForProject(String projectId) {
         return chatMessageDao.getMessagesForProject(projectId);
     }
 
-    public List<ru.mogcommunity.rbr_project.data.model.ChatMessage> getChatMessagesForProjectSync(String projectId) {
+    public List<ru.mogcommunity.rbrproject.data.model.ChatMessage> getChatMessagesForProjectSync(String projectId) {
         return chatMessageDao.getMessagesForProjectSync(projectId);
     }
 
-    public void insertChatMessage(ru.mogcommunity.rbr_project.data.model.ChatMessage message) {
+    public void insertChatMessage(ru.mogcommunity.rbrproject.data.model.ChatMessage message) {
         AppDatabase.databaseWriteExecutor.execute(() -> chatMessageDao.insert(message));
     }
 
@@ -82,22 +82,22 @@ public class ProjectRepository {
     public void insertProject(Project project) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             try {
-                Log.d("RBR_ProjectRepository", "Inserting project: " + project.getId());
+                Log.d("rbrprojectRepository", "Inserting project: " + project.getId());
                 projectDao.insert(project);
-                Log.d("RBR_ProjectRepository", "Project inserted successfully");
+                Log.d("rbrprojectRepository", "Project inserted successfully");
                 
                 if (preferenceManager.isCloudSyncEnabled() && firebaseManager.isUserLoggedIn()) {
-                    Log.d("RBR_ProjectRepository", "Syncing project to cloud");
+                    Log.d("rbrprojectRepository", "Syncing project to cloud");
                     firebaseManager.saveProjectToFirestore(project, task -> {
                         if (task.isSuccessful()) {
-                            Log.d("RBR_ProjectRepository", "Project synced to cloud successfully");
+                            Log.d("rbrprojectRepository", "Project synced to cloud successfully");
                         } else {
-                            Log.e("RBR_ProjectRepository", "Failed to sync project to cloud", task.getException());
+                            Log.e("rbrprojectRepository", "Failed to sync project to cloud", task.getException());
                         }
                     });
                 }
             } catch (Exception e) {
-                Log.e("RBR_ProjectRepository", "Error inserting project", e);
+                Log.e("rbrprojectRepository", "Error inserting project", e);
             }
         });
      }
@@ -105,7 +105,7 @@ public class ProjectRepository {
     public void updateProjectDetails(String projectId, String name, String description, String configEnv) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             try {
-                Log.d("RBR_ProjectRepository", "Updating project details: " + projectId);
+                Log.d("rbrprojectRepository", "Updating project details: " + projectId);
                 Project project = projectDao.getProjectById(projectId);
                 if (project != null) {
                     project.setName(name);
@@ -117,7 +117,7 @@ public class ProjectRepository {
                     }
                 }
             } catch (Exception e) {
-                Log.e("RBR_ProjectRepository", "Error updating project details", e);
+                Log.e("rbrprojectRepository", "Error updating project details", e);
             }
         });
     }
@@ -125,13 +125,13 @@ public class ProjectRepository {
     public void updateProject(Project project) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             try {
-                Log.d("RBR_ProjectRepository", "Updating project: " + project.getId());
+                Log.d("rbrprojectRepository", "Updating project: " + project.getId());
                 projectDao.update(project);
                 if (preferenceManager.isCloudSyncEnabled() && firebaseManager.isUserLoggedIn()) {
                     firebaseManager.saveProjectToFirestore(project, null);
                 }
             } catch (Exception e) {
-                Log.e("RBR_ProjectRepository", "Error updating project", e);
+                Log.e("rbrprojectRepository", "Error updating project", e);
             }
         });
     }
@@ -168,7 +168,7 @@ public class ProjectRepository {
                 }
             }
         } catch (Exception e) {
-            Log.e("RBR_ProjectRepository", "Error copying image to internal storage", e);
+            Log.e("rbrprojectRepository", "Error copying image to internal storage", e);
         }
         return uri;
     }

@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application
-        android:name="ru.mogcommunity.rbr_project.NexusApplication"
+        android:name="ru.mogcommunity.rbrproject.NexusApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

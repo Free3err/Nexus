@@ -1,4 +1,4 @@
-package ru.mogcommunity.rbr_project.ui;
+package ru.mogcommunity.rbrproject.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,10 +8,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.color.DynamicColors;
-import ru.mogcommunity.rbr_project.MainActivity;
-import ru.mogcommunity.rbr_project.data.PreferenceManager;
-import ru.mogcommunity.rbr_project.databinding.ActivityLoginBinding;
-import ru.mogcommunity.rbr_project.viewmodel.AuthViewModel;
+import ru.mogcommunity.rbrproject.MainActivity;
+import ru.mogcommunity.rbrproject.data.PreferenceManager;
+import ru.mogcommunity.rbrproject.databinding.ActivityLoginBinding;
+import ru.mogcommunity.rbrproject.viewmodel.AuthViewModel;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
@@ -25,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void attachBaseContext(android.content.Context newBase) {
-        float fontScale = ru.mogcommunity.rbr_project.data.PreferenceManager.getInstance(newBase).getFontScale();
+        float fontScale = ru.mogcommunity.rbrproject.data.PreferenceManager.getInstance(newBase).getFontScale();
         android.content.res.Configuration config = new android.content.res.Configuration(newBase.getResources().getConfiguration());
         config.fontScale = fontScale;
         android.content.Context context = newBase.createConfigurationContext(config);

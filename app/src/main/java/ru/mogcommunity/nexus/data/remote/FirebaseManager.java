@@ -1,9 +1,9 @@
-package ru.mogcommunity.rbr_project.data.remote;
+package ru.mogcommunity.rbrproject.data.remote;
 
 import android.net.Uri;
 
-import ru.mogcommunity.rbr_project.data.model.Project;
-import ru.mogcommunity.rbr_project.data.model.Snapshot;
+import ru.mogcommunity.rbrproject.data.model.Project;
+import ru.mogcommunity.rbrproject.data.model.Snapshot;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
