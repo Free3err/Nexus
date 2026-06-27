@@ -93,7 +93,7 @@ app/src/main/java/ru/mogcommunity/nexus/
 ## Требования для сборки
 
 - JDK 17
-- Android SDK 34 (мин. версия API 24)
+- Android SDK 35 (мин. версия API 24)
 - Gradle 8.x
 - Настроенный Firebase-проект (требуется файл google-services.json)
 
