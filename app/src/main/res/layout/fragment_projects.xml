@@ -174,104 +174,126 @@
                         android:contentDescription="Редактировать проект"
                         app:icon="@drawable/ic_edit"
                         app:iconTint="?attr/colorPrimary" />
-                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/text_project_desc"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Описание инженерной задачи"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="14sp" />
-
-                <!-- Dynamic config.env section -->
-                <LinearLayout
-                    android:id="@+id/layout_project_config_container"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:orientation="vertical"
-                    android:visibility="gone">
-
-                    <TextView
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_toggle_project_card"
+                        style="@style/Widget.Material3.Button.IconButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Конфигурация (config.env)"
-                        android:textColor="?attr/colorPrimary"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.05"/>
+                        android:contentDescription="Свернуть/Развернуть карточку"
+                        app:icon="@drawable/ic_arrow_down"
+                        app:iconTint="?attr/colorPrimary" />
+                </LinearLayout>
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
+                <LinearLayout
+                    android:id="@+id/layout_project_card_collapsible_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/text_project_desc"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:backgroundTint="?attr/colorSurfaceVariant"
-                        app:cardCornerRadius="8dp"
-                        app:cardElevation="0dp"
-                        app:strokeWidth="0dp">
+                        android:text="Описание инженерной задачи"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:textSize="14sp" />
+
+                    <!-- Dynamic config.env section -->
+                    <LinearLayout
+                        android:id="@+id/layout_project_config_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="vertical"
+                        android:visibility="gone">
 
                         <TextView
-                            android:id="@+id/text_project_config"
+                            android:id="@+id/text_config_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Конфигурация (config.env)"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.05"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?android:attr/selectableItemBackground"/>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/card_project_config"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:padding="8dp"
-                            android:text=""
-                            android:fontFamily="@font/jetbrains_mono"
-                            android:textColor="?android:attr/textColorPrimary"
+                            android:layout_marginTop="4dp"
+                            android:backgroundTint="?attr/colorSurfaceVariant"
+                            android:visibility="gone"
+                            app:cardCornerRadius="8dp"
+                            app:cardElevation="0dp"
+                            app:strokeWidth="0dp">
+
+                            <TextView
+                                android:id="@+id/text_project_config"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="8dp"
+                                android:text=""
+                                android:fontFamily="@font/jetbrains_mono"
+                                android:textColor="?android:attr/textColorPrimary"
+                                android:textSize="12sp" />
+                        </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/text_project_date"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Дата: 24.05.2026"
+                            android:textColor="?android:attr/textColorSecondary"
                             android:textSize="12sp" />
-                    </com.google.android.material.card.MaterialCardView>
-                </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:orientation="horizontal">
+                        <TextView
+                            android:id="@+id/text_snapshots_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Снимков: 0"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/text_project_date"
-                        android:layout_width="0dp"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Дата: 24.05.2026"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="12sp" />
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/text_snapshots_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Снимков: 0"
-                        android:textColor="?attr/colorPrimary"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_add_snapshot"
+                            style="@style/Widget.RollAndBack.Button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:text="Снимок состояния" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_add_snapshot"
-                        style="@style/Widget.RollAndBack.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:text="Снимок состояния" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_delete_project"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="?attr/colorError"
-                        app:strokeColor="?attr/colorError"
-                        android:text="Удалить" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_delete_project"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="?attr/colorError"
+                            app:strokeColor="?attr/colorError"
+                            android:text="Удалить" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

@@ -184,6 +184,22 @@ public class ProjectsFragment extends Fragment {
             }
         });
 
+        binding.btnToggleProjectCard.setOnClickListener(v -> {
+            boolean isCollapsed = binding.layoutProjectCardCollapsibleContent.getVisibility() == View.GONE;
+            if (isCollapsed) {
+                binding.layoutProjectCardCollapsibleContent.setVisibility(View.VISIBLE);
+                binding.btnToggleProjectCard.animate().rotation(180f).setDuration(200).start();
+            } else {
+                binding.layoutProjectCardCollapsibleContent.setVisibility(View.GONE);
+                binding.btnToggleProjectCard.animate().rotation(0f).setDuration(200).start();
+            }
+        });
+
+        binding.textConfigTitle.setOnClickListener(v -> {
+            boolean isConfigVisible = binding.cardProjectConfig.getVisibility() == View.VISIBLE;
+            binding.cardProjectConfig.setVisibility(isConfigVisible ? View.GONE : View.VISIBLE);
+        });
+
         binding.btnSearchProjects.setOnClickListener(v -> {
             if (binding.layoutSearchProjects.getVisibility() == View.VISIBLE) {
                 binding.layoutSearchProjects.setVisibility(View.GONE);
@@ -401,6 +417,13 @@ public class ProjectsFragment extends Fragment {
         binding.textProjectDesc.setText(project.getDescription());
         binding.textProjectDate.setText("Дата начала: " + dateFormat.format(new Date(project.getCreatedAt())));
         binding.textSnapshotsCount.setText("Снимков: " + project.getSnapshotsCount());
+
+        // Reset config visibility to collapsed by default on selection
+        binding.cardProjectConfig.setVisibility(View.GONE);
+
+        // Reset card state to expanded by default on selection
+        binding.layoutProjectCardCollapsibleContent.setVisibility(View.VISIBLE);
+        binding.btnToggleProjectCard.setRotation(180f);
 
         if (project.getConfigEnv() != null && !project.getConfigEnv().trim().isEmpty()) {
             binding.layoutProjectConfigContainer.setVisibility(View.VISIBLE);
